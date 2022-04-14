@@ -9,8 +9,7 @@ EXPERIMENT_NAME: str = "model_hw_mc_genetic"
 
 
 def depends(ctx):
-    ctx("pynn-brainscales")
-    ctx("calix")
+    ctx("model-hw-si-nsc-dendrites")
     ctx("code-format")
 
 
@@ -46,7 +45,7 @@ def build_host_python(bld):
         install_from="src/py",
         pylint_config=join(get_toplevel_path(), "code-format", "pylintrc"),
         pycodestyle_config=join(get_toplevel_path(), "code-format", "pycodestyle"),
-        use=["pynn_brainscales2"])
+        use=["model_hw_si_nsc_dendrites-python_libraries"])
 
     bld(name=f"{EXPERIMENT_NAME}-python_scripts",
         features="py use pylint pycodestyle",
@@ -57,7 +56,7 @@ def build_host_python(bld):
         chmod=Utils.O755,
         pylint_config=join(get_toplevel_path(), "code-format", "pylintrc"),
         pycodestyle_config=join(get_toplevel_path(), "code-format", "pycodestyle"),
-        use=["pynn_brainscales2", f"{EXPERIMENT_NAME}-python_libraries"])
+        use=[f"{EXPERIMENT_NAME}-python_libraries"])
 
     bld(name=f"{EXPERIMENT_NAME}-python_hwtests",
         tests=bld.path.ant_glob("tests/hw/py/**/*.py"),
