@@ -68,6 +68,23 @@ try {
 		}
 	}
 
+	stage("Linting Warnings") {
+		runOnSlave(label: "frontend") {
+			recordIssues(qualityGates: [[threshold: 1,
+										 type     : 'TOTAL',
+										 unstable : true]],
+						 blameDisabled: true,
+						 skipPublishingChecks: true,
+						 tools: [pyLint(pattern: "build/test_results/**/*.pylint",
+										id: "pylint_" + UUID.randomUUID().toString(),
+										name: "Pylint Warnings"),
+								 pep8(pattern: "build/test_results//**/*.pycodestyle",
+									  id: "pep8_" + UUID.randomUUID().toString(),
+									  name: "PEP8 Warnings")]
+			)
+		}
+	}
+
 } catch (Throwable t) {
 	notifyFailure(mattermostChannel: "#jjk-notifications")
 	throw t
