@@ -83,7 +83,7 @@ class AttenuationExperiment:
 
         for comp, g_leak in zip(self.chain.compartments, params[:length]):
             comp.set(leak_i_bias=g_leak)
-        for comp, g_icc in zip(self.chain.compartments[1:], params[:length]):
+        for comp, g_icc in zip(self.chain.compartments[1:], params[length:]):
             set_compartment_conductance(comp, g_icc)
 
     def set_parameters_global(self, params: np.ndarray):
