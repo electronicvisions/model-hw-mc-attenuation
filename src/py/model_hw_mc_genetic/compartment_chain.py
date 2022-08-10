@@ -4,6 +4,7 @@ import numpy as np
 import neo
 import torch
 from scipy.optimize import curve_fit
+import quantities as pq
 
 import pynn_brainscales.brainscales2 as pynn
 from pynn_brainscales.brainscales2.standardmodels.synapses import StaticSynapse
@@ -29,8 +30,9 @@ class AttenuationExperiment:
     def __init__(self, calibration: Path, length: int = 5,
                  input_neurons: int = 20,
                  input_weight: int = 63):
-        self.runtime = 0.5  # ms (hw)
-        self.spike_times = [self.runtime / 4]
+        interval = 0.2 * pq.ms  # time between spikes
+        self.runtime = interval * length
+        self.spike_times = np.arange(length) * interval + interval / 2
 
         self.chain = self._setup(calibration=calibration,
                                  length=length,
@@ -49,13 +51,17 @@ class AttenuationExperiment:
         pynn.setup(initial_config=pynn.helper.chip_from_file(calibration))
         chain = CompartmentChain(length)
 
-        # Inject single stimulus in first compartment and measure responses
-        pop_in = pynn.Population(input_neurons, pynn.cells.SpikeSourceArray(
-            spike_times=self.spike_times))
+        # Inject inputs in one compartment after another
+        pop_in = []
+        for spike_time in self.spike_times:
+            spike_source = pynn.cells.SpikeSourceArray(
+                spike_times=[float(spike_time.rescale(pq.ms))])
+            pop_in.append(pynn.Population(input_neurons, spike_source))
 
-        pynn.Projection(pop_in, chain.compartments[0],
-                        pynn.AllToAllConnector(),
-                        synapse_type=StaticSynapse(weight=input_weight))
+        for pop, compartment in zip(pop_in, chain.compartments):
+            pynn.Projection(pop, compartment,
+                            pynn.AllToAllConnector(),
+                            synapse_type=StaticSynapse(weight=input_weight))
         return chain
 
     def set_parameters(self, params: torch.Tensor):
@@ -107,12 +113,12 @@ class AttenuationExperiment:
         for n_comp, comp in enumerate(self.chain.compartments):
             comp.record(['v'])
 
-            pynn.run(self.runtime)
+            pynn.run(float(self.runtime.rescale(pq.ms)))
             pynn.reset()
 
             # Extract hight
             sig = comp.get_data().segments[-1].irregularlysampledsignals[0]
-            sig.annotate(compartment=n_comp)
+            sig.annotate(compartment=n_comp, input_spikes=self.spike_times)
             results.append(sig)
 
             comp.record(None)
@@ -130,11 +136,27 @@ def extract_psp_heights(
 
     :param traces: Analog signal for each compartment in the chain.
     :return: Height of PSP (difference between maximum and baseline).
+        The heights are calculated for each compartment and for each input
+        spike. The outer dimension iterates over compartments, the inner
+        over input spikes.
     '''
     heights = []
     for sig in traces:
-        # Take first quarter as base line
-        heights.append(sig.max() - sig[:int(len(sig) / 4)].mean())
+        heights_comp = []
+        spike_times = sig.annotations['input_spikes'].rescale(pq.ms)
+
+        start_stop = np.concatenate([
+            sig.t_start.rescale(pq.ms)[np.newaxis],
+            spike_times[:-1] + np.diff(spike_times) / 2,
+            sig.t_stop.rescale(pq.ms)[np.newaxis]]) * pq.ms
+
+        # use membrane voltage before first spike as baseline
+        baseline = sig.time_slice(sig.t_start, spike_times[0]).mean()
+
+        for start, stop in zip(start_stop[:-1], start_stop[1:]):
+            cut_sig = sig.time_slice(start, stop)
+            heights_comp.append(cut_sig.max() - baseline)
+        heights.append(heights_comp)
     return np.asarray(heights)
 
 
@@ -143,11 +165,14 @@ def fit_length_constant(
     '''
     Fit an exponential decay to the PSP height in the compartments.
 
+    Only the exponential decay for an input to the first compartment is
+    considered.
+
     :param traces: Analog signal for each compartment in the chain.
-    :return: Length constant (exponential fir to PSP height as function of
+    :return: Length constant (exponential fit to PSP height as function of
         compartment)
     '''
-    heights = extract_psp_heights(traces)
+    heights = extract_psp_heights(traces)[:, 0]
 
     norm_height = heights / heights[0]
     compartments = np.arange(len(heights))

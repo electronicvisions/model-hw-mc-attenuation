@@ -57,7 +57,7 @@ if __name__ == '__main__':
 
         results['g_leak'].append(g_leak)
         results['g_icc'].append(g_icc)
-        results['heights'].append(extract_psp_heights(data))
+        results['heights'].append(extract_psp_heights(data)[:, 0])
         results['length_constant'].append(fit_length_constant(data)[0])
 
     df = pd.DataFrame(results)
