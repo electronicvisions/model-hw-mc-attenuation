@@ -3,6 +3,7 @@
 import unittest
 from pathlib import Path
 
+import matplotlib.pyplot as plt
 import numpy as np
 
 from model_hw_mc_genetic.abc import Algorithm
@@ -16,6 +17,11 @@ from model_hw_mc_genetic.scripts.abc_draw_posterior_samples import draw_samples
 from model_hw_mc_genetic.scripts.plot_abc_pairplot import plot_pairplot
 from model_hw_mc_genetic.scripts.plot_attenuation_pairplot_and_trace import \
     plot_pairplot_and_trace, plot_trace_attenuation
+from model_hw_mc_genetic.scripts.attenuation_abc_add_observables import \
+    add_observables
+from model_hw_mc_genetic.scripts.plot_abc_marginals import plot_marginals
+from model_hw_mc_genetic.scripts.plot_abc_marginals_obs import main as \
+    plot_marginals_obs
 
 
 class TestAlgorithms(unittest.TestCase):
@@ -133,6 +139,10 @@ class TestEvaluation(unittest.TestCase):
         self.__class__.posterior_samples = draw_samples(self.posteriors,
                                                         self.abc_samples)
 
+    def test_01_add_observables(self):
+        self.__class__.posterior_samples = \
+            add_observables(self.__class__.posterior_samples, 50)
+
     def test_01_plot_pairplot(self):
         figure = plot_pairplot([self.posterior_samples])
         figure.savefig(self.results_folder.joinpath('test_pairplot.png'))
@@ -149,6 +159,17 @@ class TestEvaluation(unittest.TestCase):
                                          n_samples=8)
         figure.savefig(
             self.results_folder.joinpath('test_pairplot_and_traces.png'))
+
+    def test_01_plot_marginals(self):
+        figure = plot_marginals([self.posterior_samples])
+        figure.savefig(self.results_folder.joinpath('test_abc_marginals.png'))
+
+    def test_02_plot_marginals_obs(self):
+        for observation in Observation:
+            figure = plot_marginals_obs([self.posterior_samples], observation)
+            figure.savefig(self.results_folder.joinpath(
+                f'test_abc_marginals_obs_{observation.name}.png'))
+            plt.close()
 
 
 if __name__ == "__main__":
