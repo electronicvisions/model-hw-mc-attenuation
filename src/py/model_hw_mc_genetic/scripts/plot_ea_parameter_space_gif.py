@@ -26,8 +26,7 @@ class ScatterPlotAnimater:
         self.limits = self.data.attrs['limits']
         self.param_names = list(self.data['parameters'].columns)
 
-        n_params = len(self.param_names)
-        self.axes = create_axes_grid(grid, (n_params, n_params))
+        self.axes = create_axes_grid(grid, len(self.param_names))
 
         # Create animation
         self.artists_grid = []  # Will be set in _setup_plot
