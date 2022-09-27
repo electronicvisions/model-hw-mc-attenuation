@@ -125,9 +125,6 @@ class AttenuationExperiment:
 
         return results
 
-    def __del__(self):
-        pynn.end()
-
 
 def extract_psp_heights(
         traces: List[neo.IrregularlySampledSignal]) -> np.ndarray:
