@@ -4,13 +4,14 @@ Record all samples in a grid of parameter values and save height as well as
 attenuation in a DataFrame.
 '''
 from itertools import product
-from collections import defaultdict
+from datetime import datetime
 from pathlib import Path
 import pandas as pd
 import numpy as np
 
-from model_hw_mc_genetic.compartment_chain import AttenuationExperiment, \
-    extract_psp_heights, fit_length_constant
+from model_hw_si_nsc_dendrites.helper import get_license_and_chip
+
+from model_hw_mc_genetic.compartment_chain import AttenuationExperiment
 
 if __name__ == '__main__':
     import argparse
@@ -43,22 +44,46 @@ if __name__ == '__main__':
                         nargs=3,
                         type=int,
                         default=[10, 1000, 100])
+    parser.add_argument("-input_neurons",
+                        help="Number of synchronous inputs (BSS only).",
+                        type=int,
+                        default=10)
+    parser.add_argument("-input_weight",
+                        help="Input weight for each neuron (BSS only).",
+                        type=int,
+                        default=30)
     args = parser.parse_args()
 
     # Experiment
     chain_experiment = AttenuationExperiment(Path(args.calibration),
-                                             args.length)
+                                             args.length,
+                                             input_weight=args.input_weight,
+                                             input_neurons=args.input_neurons)
 
-    results = defaultdict(list)
-    for g_leak, g_icc in product(np.linspace(*args.g_leak),
-                                 np.linspace(*args.g_icc)):
-        chain_experiment.set_parameters(np.array([g_leak, g_icc]))
-        data = chain_experiment.measure_result()
+    # Create DataFrame, fill with parameter values and add meta data
+    param_col = pd.MultiIndex.from_product([['parameters'],
+                                            ['g_leak', 'g_icc']])
+    psp_col = pd.MultiIndex.from_product([['psp_heights'],
+                                          np.arange(args.length**2)])
+    columns = pd.MultiIndex.from_tuples(list(param_col) + list(psp_col))
+    parameters = np.array(list(product(np.linspace(*args.g_leak),
+                                       np.linspace(*args.g_icc))))
 
-        results['g_leak'].append(g_leak)
-        results['g_icc'].append(g_icc)
-        results['heights'].append(extract_psp_heights(data)[:, 0])
-        results['length_constant'].append(fit_length_constant(data)[0])
+    result = pd.DataFrame(np.zeros([len(parameters), 2 + args.length**2]),
+                          columns=columns)
+    result['parameters'] = parameters
 
-    df = pd.DataFrame(results)
-    df.to_pickle('chain_attenuation_grid_search.pkl')
+    result.attrs['calibration'] = str(Path(args.calibration).resolve())
+    result.attrs['length'] = args.length
+    result.attrs['date'] = str(datetime.now())
+    result.attrs['license'] = get_license_and_chip()
+    result.attrs['input_neurons'] = args.input_neurons
+    result.attrs['input_weight'] = args.input_weight
+
+    # Perform experiment
+    for row in range(len(result)):
+        g_leak, g_icc = result.loc[row, 'parameters']
+        data = chain_experiment.measure_response(np.array([g_leak, g_icc]))
+        result.loc[row, 'psp_heights'] = data.flatten()
+
+    result.to_pickle('chain_attenuation_grid_search.pkl')

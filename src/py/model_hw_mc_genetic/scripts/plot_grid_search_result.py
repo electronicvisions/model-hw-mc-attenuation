@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 
 import scipy.ndimage
+from model_hw_mc_genetic.compartment_chain import fit_length_constant
 
 
 def plot_parameter_space(ax: plt.Axes, data: pd.DataFrame):
@@ -63,14 +64,22 @@ if __name__ == '__main__':
     fig, axis = plt.subplots()
     grid_data = pd.read_pickle(input_file)
 
+    chain_length = grid_data.attrs['length']
+
+    # function to extract length constants
+    def calculate_length_constants(row: pd.Series) -> float:
+        # Extract PSP heights in first compartment
+        heights = row['psp_heights'].values.\
+            reshape(chain_length, chain_length)[0]
+        return fit_length_constant(heights)
+
     # Filter for desired observable
-    filtered_data = grid_data.iloc[:, [0, 1]].copy(deep=True)
+    filtered_data = grid_data.loc[:, 'parameters'].copy(deep=True)
     if args.observable == 'length_constant':
-        filtered_data['Length Constant'] = grid_data.loc[:, 'length_constant']
+        filtered_data['Length Constant'] = \
+            grid_data.apply(calculate_length_constants, axis=1)
     elif args.observable == 'height':
-        filtered_data['Height'] = \
-            np.stack(grid_data.loc[:, 'heights'])[:, 0]
+        filtered_data['Height'] = grid_data.loc[:, 'psp_heights'][0]
 
     plot_parameter_space(axis, filtered_data)
-
     fig.savefig(f'{input_file.stem}.png', dpi=300)
