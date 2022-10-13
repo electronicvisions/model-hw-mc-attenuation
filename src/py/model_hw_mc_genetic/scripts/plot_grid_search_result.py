@@ -8,8 +8,8 @@ from model_hw_mc_genetic.compartment_chain import fit_length_constant
 
 
 def plot_parameter_space(ax: plt.Axes, data: pd.DataFrame):
-    x_name = data.columns[0]
-    y_name = data.columns[1]
+    x_name = data.columns[1]
+    y_name = data.columns[0]
     z_name = data.columns[2]
 
     # arrange data
@@ -70,7 +70,7 @@ if __name__ == '__main__':
     def calculate_length_constants(row: pd.Series) -> float:
         # Extract PSP heights in first compartment
         heights = row['psp_heights'].values.\
-            reshape(chain_length, chain_length)[0]
+            reshape(chain_length, chain_length)[:, 0]
         return fit_length_constant(heights)
 
     # Filter for desired observable
@@ -79,7 +79,7 @@ if __name__ == '__main__':
         filtered_data['Length Constant'] = \
             grid_data.apply(calculate_length_constants, axis=1)
     elif args.observable == 'height':
-        filtered_data['Height'] = grid_data.loc[:, 'psp_heights'][0]
+        filtered_data['Height'] = grid_data.loc[:, 'psp_heights'][:, 0]
 
     plot_parameter_space(axis, filtered_data)
     fig.savefig(f'{input_file.stem}.png', dpi=300)
