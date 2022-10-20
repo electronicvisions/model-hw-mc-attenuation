@@ -230,11 +230,12 @@ def extract_psp_heights(
             spike_times[:-1] + np.diff(spike_times) / 2,
             sig.t_stop.rescale(pq.ms)[np.newaxis]]) * pq.ms
 
-        # use membrane voltage before first spike as baseline
-        baseline = sig.time_slice(sig.t_start, spike_times[0]).mean()
-
-        for start, stop in zip(start_stop[:-1], start_stop[1:]):
+        for n_spike, (start, stop) in enumerate(zip(start_stop[:-1],
+                                                    start_stop[1:])):
             cut_sig = sig.time_slice(start, stop)
+            # use membrane voltage before first spike as baseline
+            baseline = cut_sig.time_slice(cut_sig.t_start,
+                                          spike_times[n_spike]).mean()
             heights_comp.append(cut_sig.max() - baseline)
         heights.append(heights_comp)
     return np.asarray(heights)
