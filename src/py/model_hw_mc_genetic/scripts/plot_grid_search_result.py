@@ -53,10 +53,17 @@ if __name__ == '__main__':
     parser.add_argument('-observable',
                         type=str,
                         default='length_constant',
-                        choices=['length_constant', 'height'],
+                        choices=['length_constant', 'height',
+                                 'deviation_heights'],
                         help='Observable to plot. If height is selected, the '
                              'EPSP height in the first compartment is '
-                             'plotted.')
+                             'plotted. For the deviation the Euclidean '
+                             'distance between the heights is plotted.')
+    parser.add_argument('-target',
+                        type=str,
+                        help='Path to pickled DataFrame with target '
+                             'observation. Only needed if `observable` is '
+                             '"deviation_heights".')
     args = parser.parse_args()
 
     input_file = Path(args.grid_search_result)
@@ -80,6 +87,15 @@ if __name__ == '__main__':
             grid_data.apply(calculate_length_constants, axis=1)
     elif args.observable == 'height':
         filtered_data['Height'] = grid_data.loc[:, 'psp_heights'][:, 0]
+    elif args.observable == 'deviation_heights':
+        target = pd.read_pickle(args.target).mean(axis=0)
+        measured = grid_data.loc[:, 'psp_heights'][:]
+
+        # max 30 LSB deviation per compartment
+        max_deviation = np.sqrt(30**2 * chain_length)
+        deviation = np.linalg.norm(measured - target, axis=1)
+        deviation[deviation > max_deviation] = max_deviation
+        filtered_data['Deviation'] = deviation
 
     plot_parameter_space(axis, filtered_data)
     fig.savefig(f'{input_file.stem}.png', dpi=300)
