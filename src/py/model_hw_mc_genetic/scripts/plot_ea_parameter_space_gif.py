@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from pathlib import Path
 import matplotlib.pyplot as plt
-import matplotlib.animation as animation
+from matplotlib import animation
 import pandas as pd
 
 from model_hw_mc_genetic.plot_pairplot import pairplot, create_axes_grid
