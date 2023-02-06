@@ -5,7 +5,7 @@ from itertools import product
 
 import numpy as np
 
-from model_hw_mc_genetic.compartment_chain import fit_exponential
+from model_hw_mc_genetic.attenuation import fit_exponential
 
 
 class TestFitLengthConstant(unittest.TestCase):

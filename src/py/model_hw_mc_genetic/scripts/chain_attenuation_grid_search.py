@@ -11,7 +11,7 @@ import numpy as np
 
 from model_hw_si_nsc_dendrites.helper import get_license_and_chip
 
-from model_hw_mc_genetic.compartment_chain import AttenuationExperiment
+from model_hw_mc_genetic.attenuation.bss import AttenuationExperiment
 
 
 def main(calibration: str, g_leak_icc: np.ndarray, *,

@@ -6,7 +6,7 @@ from unittest import mock
 
 import pynn_brainscales.brainscales2 as pynn
 
-from model_hw_mc_genetic.compartment_chain import AttenuationExperiment
+from model_hw_mc_genetic.attenuation.bss import AttenuationExperiment
 
 
 class TestBSS(unittest.TestCase):

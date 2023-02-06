@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 import scipy.ndimage
-from model_hw_mc_genetic.compartment_chain import fit_length_constant
+from model_hw_mc_genetic.attenuation import fit_length_constant
 
 
 def plot_parameter_space(ax: plt.Axes, data: pd.DataFrame):

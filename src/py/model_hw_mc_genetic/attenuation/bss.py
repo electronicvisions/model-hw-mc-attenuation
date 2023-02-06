@@ -4,29 +4,29 @@ from datetime import datetime
 import numpy as np
 import neo
 import torch
-from scipy.optimize import curve_fit
 import quantities as pq
 
 import pynn_brainscales.brainscales2 as pynn
 from pynn_brainscales.brainscales2.standardmodels.synapses import StaticSynapse
 
-from model_hw_si_nsc_dendrites.helper import get_license_and_chip
-
+from model_hw_si_nsc_dendrites.helper import get_license_and_chip, \
+    set_compartment_conductance
 from model_hw_si_nsc_dendrites.compartment_chain import CompartmentChain
-from model_hw_si_nsc_dendrites.helper import set_compartment_conductance
+
+from model_hw_mc_genetic.attenuation import extract_psp_heights
+from model_hw_mc_genetic.attenuation.base import Base
 
 
-class AttenuationExperiment:
+class AttenuationExperiment(Base):
     '''
     Experiment which measures the attenuation of a PSP as it travels along a
-    chain of comaprtments.
+    chain of compartments on the BSS-2 system.
 
     A synaptic input is injected in the first compartment of a chain and the
     PSPs in all compartments are measured one after another.
-    The class offers functions to extract the heights of the PSPs and
-    deterimining a length constant with an exoinential fit.
 
     :ivar runtime: Experiment runtime in ms (hw domain).
+    :ivar spike_times: Times at which the different inputs are injected.
     :ivar chain: CompartmentChain object used to perform the experiments.
     '''
 
@@ -34,18 +34,28 @@ class AttenuationExperiment:
                  *,
                  input_neurons: int = 15,
                  input_weight: int = 63,
-                 enable_leak_divsion: bool = False):
+                 enable_leak_divsion: bool = False) -> None:
+        '''
+        Create a AttenuationExperiment for BSS-2.
+
+        :param calibration: Path to portable binary calibration.
+        :param length: Number of compartments in the chain.
+        :param input_neurons: Number of synchronous inputs.
+        :param input_weight: Synaptic weight of each input.
+        :param enable_leak_divsion: Enable division of the leak conductance.
+        '''
+        super().__init__(length)
+
         interval = 0.2 * pq.ms  # time between spikes
         self.runtime = interval * length
         self.spike_times = np.arange(length) * interval + interval / 2
 
         self.chain = self._setup(calibration=calibration,
-                                 length=length,
                                  input_neurons=input_neurons,
                                  input_weight=input_weight,
                                  enable_leak_divsion=enable_leak_divsion)
 
-    def _setup(self, calibration: Path, length: int,
+    def _setup(self, calibration: Path,
                *,
                input_neurons: int, input_weight: int,
                enable_leak_divsion: bool) -> CompartmentChain:
@@ -55,9 +65,13 @@ class AttenuationExperiment:
         Create a chain, a input population and a projection from this
         population to the first compartment.
 
+        :param calibration: Path to portable binary calibration.
+        :param input_neurons: Number of synchronous inputs.
+        :param input_weight: Synaptic weight of each input.
+        :param enable_leak_divsion: Enable division of the leak conductance.
         '''
         pynn.setup(initial_config=pynn.helper.chip_from_file(calibration))
-        chain = CompartmentChain(length)
+        chain = CompartmentChain(self.length)
 
         # disable multiplication for leak and set division based on argument
         for comp in chain.compartments:
@@ -78,15 +92,7 @@ class AttenuationExperiment:
         return chain
 
     def set_parameters_individual(self, params: torch.Tensor):
-        '''
-        Adjust leak conductance and inter-compartment conductance.
-
-        :param params: Array with leak conductance and inter-compartment
-            conductance for each compartment individually. The leak conductance
-            is be expected to be in the first entries (one entry for each
-            compartment) followed by the inter-compartment conductances.
-        '''
-        length = len(self.chain.compartments)
+        length = self.length
 
         if params.size != 2 * length - 1:
             raise ValueError('Provide a value of the leak conductance and the '
@@ -100,14 +106,6 @@ class AttenuationExperiment:
             set_compartment_conductance(comp, g_icc)
 
     def set_parameters_global(self, params: np.ndarray):
-        '''
-        Adjust leak conductance and inter-compartment conductance.
-
-        :param params: Global values of the leak conductance and
-            inter-compartment conductance to set (one value for each parameter
-            is shared for all compartments).
-        '''
-
         if params.size != 2:
             raise ValueError('Provide one value for the leak conductance and '
                              'one value for the inter-compartment '
@@ -115,23 +113,6 @@ class AttenuationExperiment:
         for comp in self.chain.compartments:
             comp.set(leak_i_bias=params[0])
             set_compartment_conductance(comp, params[1])
-
-    def set_parameters(self, parameters: np.ndarray) -> None:
-        '''
-        Set leak and inter-compartment conductance.
-
-        :parameters: Parameters of the leak and inter compartment conductance
-            to set. The parameters can be provided globally for all
-            compartments (parameters has length 2) or for each compartment
-            individually (parameters has length 'chain length - 1').
-            If the parameters are set individually the leak conductance
-            is be expected to be in the first entries (one entry for each
-            compartment) followed by the inter-compartment conductances.
-        '''
-        if parameters is not None and len(parameters) == 2:
-            self.set_parameters_global(parameters)
-        elif parameters is not None:
-            self.set_parameters_individual(parameters)
 
     def record_membrane_traces(self) -> List[neo.IrregularlySampledSignal]:
         '''
@@ -164,9 +145,9 @@ class AttenuationExperiment:
         :parameters: Parameters of the leak and inter compartment conductance
             to set. The parameters can be provided globally for all
             compartments (parameters has length 2) or for each compartment
-            indivudually (parameters has lenght 'chain length - 1').
+            individually (parameters has length 'chain length - 1').
         :return: PSP heights in the different compartments. The first row
-            conatins the response in the first compartment, the second the
+            contains the response in the first compartment, the second the
             response in the second and so on. The different columns are the
             responses to different input sites.
         '''
@@ -179,10 +160,15 @@ def record_data(calibration: Path, parameters: np.ndarray,
                 input_neurons: Optional[int] = None,
                 input_weight: Optional[int] = None) -> neo.Block:
     '''
-    Record input traces for different comaprtments in a chain of compartments.
+    Record input traces for different compartments in a chain of compartments.
 
-    :param input_neurons: Number of synchronous inputs (BSS only).
-    :param input_weight: Input weight for each neuron (BSS only).
+    :param calibration: Path to portable binary calibration.
+    :param parameters: Leak and inter-compartment conductance. Can be set
+        globally or locally, compare
+        :meth:`~AttenuationExperiment.set_parameters`.
+    :param length: Number of compartments in the chain.
+    :param input_neurons: Number of synchronous inputs.
+    :param input_weight: Synaptic weight of each input.
     '''
     # configure chain
     chain_experiment = AttenuationExperiment(calibration, length,
@@ -207,81 +193,3 @@ def record_data(calibration: Path, parameters: np.ndarray,
                    spike_times=chain_experiment.spike_times)
 
     return block
-
-
-def extract_psp_heights(
-        traces: List[neo.IrregularlySampledSignal]) -> np.ndarray:
-    '''
-    Extract the PSP height from membrane recordings.
-
-    :param traces: Analog signal for each compartment in the chain.
-    :return: Height of PSP (difference between maximum and baseline).
-        The heights are calculated for each compartment and for each input
-        spike. The outer dimension iterates over compartments, the inner
-        over input spikes.
-    '''
-    heights = []
-    for sig in traces:
-        heights_comp = []
-        spike_times = sig.annotations['input_spikes'].rescale(pq.ms)
-
-        start_stop = np.concatenate([
-            sig.t_start.rescale(pq.ms)[np.newaxis],
-            spike_times[:-1] + np.diff(spike_times) / 2,
-            sig.t_stop.rescale(pq.ms)[np.newaxis]]) * pq.ms
-
-        for n_spike, (start, stop) in enumerate(zip(start_stop[:-1],
-                                                    start_stop[1:])):
-            cut_sig = sig.time_slice(start, stop)
-            # use membrane voltage before first spike as baseline
-            baseline = cut_sig.time_slice(cut_sig.t_start,
-                                          spike_times[n_spike]).mean()
-            heights_comp.append(cut_sig.max() - baseline)
-        heights.append(heights_comp)
-    return np.asarray(heights)
-
-
-def fit_exponential(heights: np.ndarray) -> float:
-    '''
-    Fit an exponential decay to the PSP height in the given array.
-
-    :param heights: PSP heights to which an exponential should be fitted.
-    :return: All fit parameters of the exponential fit (tau, offset,
-        scaling_factor).
-    '''
-    compartments = np.arange(len(heights))
-
-    def fitfunc(location, tau, offset, scaling_factor):
-        return scaling_factor * np.exp(- location / tau) + offset
-
-    # initial guess for fit parameters
-    guessed_tau = np.argmin(np.abs((heights - heights[-1])
-                                   - (heights[0] - heights[-1]) / np.e))
-    p_0 = {'tau': guessed_tau, 'offset': heights[-1],
-           'scaling_factor': heights[0] - heights[-1]}
-    bounds = {'tau': [0, np.inf],
-              'offset': [-np.inf, np.inf],
-              'scaling_factor': [0, np.inf]}
-
-    popt = curve_fit(
-        fitfunc,
-        compartments,
-        heights,
-        p0=[p_0['tau'], p_0['offset'], p_0['scaling_factor']],
-        bounds=([bounds['tau'][0], bounds['offset'][0],
-                 bounds['scaling_factor'][0]],
-                [bounds['tau'][1], bounds['offset'][1],
-                 bounds['scaling_factor'][1]]))[0]
-
-    return popt
-
-
-def fit_length_constant(heights: np.ndarray) -> float:
-    '''
-    Fit an exponential decay to the PSP height in the given array.
-
-    :param heights: PSP heights to which an exponential should be fitted.
-    :return: Length constant (exponential fit to PSP height as function of
-        compartment)
-    '''
-    return fit_exponential(heights)[0]
