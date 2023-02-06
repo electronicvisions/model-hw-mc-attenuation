@@ -172,7 +172,8 @@ def plot_2d_hist(ax: plt.Axes, x_values: np.ndarray, y_values: np.ndarray,
 
 
 def plot_2d_scatter(ax: plt.Axes, x_values: np.ndarray, y_values: np.ndarray,
-                    limits: Optional[np.ndarray] = None, **kwargs) -> Any:
+                    limits: Optional[np.ndarray] = None,
+                    max_points: Optional[int] = None, **kwargs) -> Any:
     '''
     Plot the given values on the given axes.
 
@@ -182,8 +183,16 @@ def plot_2d_scatter(ax: plt.Axes, x_values: np.ndarray, y_values: np.ndarray,
     :param limits: Limits of the input data. Shaped (2, 2) with the limits
         for the x-values in the first row and the values for the y-data
         in the second.
+    :param max_points: Maximum number of points to plot.
     :return: PathCollection returned by `ax.scatter`
     '''
+
+    if max_points is not None and max_points < len(x_values):
+        indices = np.random.choice(np.arange(len(x_values)), size=max_points,
+                                   replace=False)
+        x_values = x_values[indices]
+        y_values = y_values[indices]
+
     to_be_returned = ax.scatter(x_values, y_values, **kwargs)
 
     if limits is not None:
