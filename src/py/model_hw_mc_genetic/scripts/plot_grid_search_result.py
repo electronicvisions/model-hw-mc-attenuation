@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from typing import Optional
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -37,6 +39,47 @@ def plot_parameter_space(ax: plt.Axes, data: pd.DataFrame):
     return im_plot
 
 
+def extract_observable(data: pd.DataFrame, observable: str,
+                       target: Optional[pd.DataFrame] = None):
+    '''
+    Calculate the given observable from the EPSP heights.
+
+    :param data: DataFrame with parameters and EPSP heights.
+    :param observable: Observable to extract from the data.
+    :param target: DataFrame with target values which should be observed.
+        Only needed if observable is 'deviation_heights'.
+    :returns: DataFrame with the original parameters and the extracted
+        observable.
+    '''
+    chain_length = data.attrs['length']
+
+    # function to extract length constants
+    def calculate_length_constants(row: pd.Series) -> float:
+        # Extract PSP heights in first compartment
+        heights = row['psp_heights'].values.\
+            reshape(chain_length, chain_length)[:, 0]
+        return fit_length_constant(heights)
+
+    # Filter for desired observable
+    result = data.loc[:, 'parameters'].copy(deep=True)
+    if observable == 'length_constant':
+        result['Length Constant'] = \
+            data.apply(calculate_length_constants, axis=1)
+    elif observable == 'height':
+        result['Height'] = data.loc[:, 'psp_heights'].values[:, 0]
+    elif observable == 'deviation_heights':
+        target = target.mean(axis=0)
+        measured = data.loc[:, 'psp_heights']
+
+        # max 30 LSB deviation per compartment
+        max_deviation = np.sqrt(30**2 * chain_length)
+        deviation = np.linalg.norm(measured - target, axis=1)
+        deviation[deviation > max_deviation] = max_deviation
+        result['Deviation'] = deviation
+
+    return result
+
+
 if __name__ == '__main__':
     from pathlib import Path
     import argparse
@@ -69,33 +112,9 @@ if __name__ == '__main__':
     input_file = Path(args.grid_search_result)
 
     fig, axis = plt.subplots()
-    grid_data = pd.read_pickle(input_file)
-
-    chain_length = grid_data.attrs['length']
-
-    # function to extract length constants
-    def calculate_length_constants(row: pd.Series) -> float:
-        # Extract PSP heights in first compartment
-        heights = row['psp_heights'].values.\
-            reshape(chain_length, chain_length)[:, 0]
-        return fit_length_constant(heights)
-
-    # Filter for desired observable
-    filtered_data = grid_data.loc[:, 'parameters'].copy(deep=True)
-    if args.observable == 'length_constant':
-        filtered_data['Length Constant'] = \
-            grid_data.apply(calculate_length_constants, axis=1)
-    elif args.observable == 'height':
-        filtered_data['Height'] = grid_data.loc[:, 'psp_heights'][:, 0]
-    elif args.observable == 'deviation_heights':
-        target = pd.read_pickle(args.target).mean(axis=0)
-        measured = grid_data.loc[:, 'psp_heights'][:]
-
-        # max 30 LSB deviation per compartment
-        max_deviation = np.sqrt(30**2 * chain_length)
-        deviation = np.linalg.norm(measured - target, axis=1)
-        deviation[deviation > max_deviation] = max_deviation
-        filtered_data['Deviation'] = deviation
-
+    target_df = None if args.target is None else pd.read_pickle(args.target)
+    filtered_data = extract_observable(pd.read_pickle(input_file),
+                                       args.observable,
+                                       target=target_df)
     plot_parameter_space(axis, filtered_data)
     fig.savefig(f'{input_file.stem}.png', dpi=300)
