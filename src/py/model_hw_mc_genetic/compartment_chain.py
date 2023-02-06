@@ -34,7 +34,7 @@ class AttenuationExperiment:
                  *,
                  input_neurons: int = 15,
                  input_weight: int = 63,
-                 enable_leak_divsion: bool = True):
+                 enable_leak_divsion: bool = False):
         interval = 0.2 * pq.ms  # time between spikes
         self.runtime = interval * length
         self.spike_times = np.arange(length) * interval + interval / 2
