@@ -9,10 +9,11 @@ import quantities as pq
 import pynn_brainscales.brainscales2 as pynn
 from pynn_brainscales.brainscales2.standardmodels.synapses import StaticSynapse
 
+from model_hw_si_nsc_dendrites.compartment_chain import CompartmentChain
 from model_hw_si_nsc_dendrites.helper import get_license_and_chip, \
     set_compartment_conductance
-from model_hw_si_nsc_dendrites.compartment_chain import CompartmentChain
 
+from model_hw_mc_genetic.helper import set_leak_conductance
 from model_hw_mc_genetic.attenuation import extract_psp_heights
 from model_hw_mc_genetic.attenuation.base import Base
 
@@ -25,6 +26,10 @@ class AttenuationExperiment(Base):
     A synaptic input is injected in the first compartment of a chain and the
     PSPs in all compartments are measured one after another.
 
+    :ivar calibration: Path to portable binary calibration.
+    :ivar input_neurons: Number of synchronous inputs.
+    :ivar input_weight: Synaptic weight of each input.
+
     :ivar runtime: Experiment runtime in ms (hw domain).
     :ivar spike_times: Times at which the different inputs are injected.
     :ivar chain: CompartmentChain object used to perform the experiments.
@@ -33,62 +38,40 @@ class AttenuationExperiment(Base):
     def __init__(self, calibration: Path, length: int = 5,
                  *,
                  input_neurons: int = 15,
-                 input_weight: int = 63,
-                 enable_leak_divsion: bool = False) -> None:
-        '''
-        Create a AttenuationExperiment for BSS-2.
-
-        :param calibration: Path to portable binary calibration.
-        :param length: Number of compartments in the chain.
-        :param input_neurons: Number of synchronous inputs.
-        :param input_weight: Synaptic weight of each input.
-        :param enable_leak_divsion: Enable division of the leak conductance.
-        '''
+                 input_weight: int = 63) -> None:
         super().__init__(length)
+
+        self.calibration = calibration
+        self.input_neurons = input_neurons
+        self.input_weight = input_weight
 
         interval = 0.2 * pq.ms  # time between spikes
         self.runtime = interval * length
         self.spike_times = np.arange(length) * interval + interval / 2
 
-        self.chain = self._setup(calibration=calibration,
-                                 input_neurons=input_neurons,
-                                 input_weight=input_weight,
-                                 enable_leak_divsion=enable_leak_divsion)
+        self.chain = self._setup()
 
-    def _setup(self, calibration: Path,
-               *,
-               input_neurons: int, input_weight: int,
-               enable_leak_divsion: bool) -> CompartmentChain:
+    def _setup(self) -> CompartmentChain:
         '''
         Setup the Experiment.
 
         Create a chain, a input population and a projection from this
         population to the first compartment.
-
-        :param calibration: Path to portable binary calibration.
-        :param input_neurons: Number of synchronous inputs.
-        :param input_weight: Synaptic weight of each input.
-        :param enable_leak_divsion: Enable division of the leak conductance.
         '''
-        pynn.setup(initial_config=pynn.helper.chip_from_file(calibration))
+        pynn.setup(initial_config=pynn.helper.chip_from_file(self.calibration))
         chain = CompartmentChain(self.length)
-
-        # disable multiplication for leak and set division based on argument
-        for comp in chain.compartments:
-            comp.set(leak_enable_multiplication=False,
-                     leak_enable_division=enable_leak_divsion)
 
         # Inject inputs in one compartment after another
         pop_in = []
         for spike_time in self.spike_times:
             spike_source = pynn.cells.SpikeSourceArray(
                 spike_times=[float(spike_time.rescale(pq.ms))])
-            pop_in.append(pynn.Population(input_neurons, spike_source))
+            pop_in.append(pynn.Population(self.input_neurons, spike_source))
 
         for pop, compartment in zip(pop_in, chain.compartments):
-            pynn.Projection(pop, compartment,
-                            pynn.AllToAllConnector(),
-                            synapse_type=StaticSynapse(weight=input_weight))
+            pynn.Projection(
+                pop, compartment, pynn.AllToAllConnector(),
+                synapse_type=StaticSynapse(weight=self.input_weight))
         return chain
 
     def set_parameters_individual(self, params: torch.Tensor):
@@ -101,7 +84,7 @@ class AttenuationExperiment(Base):
                              'size 2 * "length of chain" - 1.')
 
         for comp, g_leak in zip(self.chain.compartments, params[:length]):
-            comp.set(leak_i_bias=g_leak)
+            set_leak_conductance(comp, g_leak)
         for comp, g_icc in zip(self.chain.compartments[1:], params[length:]):
             set_compartment_conductance(comp, g_icc)
 
@@ -111,7 +94,8 @@ class AttenuationExperiment(Base):
                              'one value for the inter-compartment '
                              'conductance, e.g. `np.array([500, 500])`')
         for comp in self.chain.compartments:
-            comp.set(leak_i_bias=params[0])
+            set_leak_conductance(comp, params[0])
+        for comp in self.chain.compartments[1:]:
             set_compartment_conductance(comp, params[1])
 
     def record_membrane_traces(self) -> List[neo.IrregularlySampledSignal]:
