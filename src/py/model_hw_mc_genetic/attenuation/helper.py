@@ -57,3 +57,26 @@ def grid_search(chain_experiment: AttenuationExperiment,
         result.loc[row, 'amplitudes'] = res.flatten()
 
     return result
+
+
+def record_variations(experiment: AttenuationExperiment,
+                      repetitions: int) -> pd.DataFrame:
+    '''
+    Repeat the same attenuation experiment several times and log the recorded
+    PSP amplitudes in a DataFrame.
+
+    :param experiment: Attenuation Experiment.
+    :param repetitions: Number of times the experiment should be repeated.
+    :returns: DataFrame with PSP amplitudes for each repetition.
+    '''
+
+    results = []
+    for _ in range(repetitions):
+        result = experiment.measure_response()
+        results.append(result.flatten())
+
+    result = pd.DataFrame(np.array(results))
+    result.attrs['length'] = experiment.length
+    result.attrs['date'] = str(datetime.now())
+
+    return result

@@ -1,0 +1,89 @@
+#!/usr/bin/env python3
+import argparse
+from pathlib import Path
+from typing import Optional, Tuple
+
+import pandas as pd
+
+from pynn_brainscales.brainscales2.helper import nightly_calib_path
+from model_hw_si_nsc_dendrites.helper import get_license_and_chip
+
+from model_hw_mc_genetic.attenuation.bss import AttenuationExperiment, \
+    expand_params, add_bss_psp_args
+from model_hw_mc_genetic.attenuation.helper import record_variations
+
+
+def main(length: int, repetitions: int,
+         parameters: Optional[Tuple[float, float]] = None, *,
+         input_neurons: Optional[int] = 10,
+         input_weight: Optional[int] = 30,
+         calibration: Optional[str] = None
+         ) -> pd.DataFrame:
+    '''
+    Repeat the same attenuation experiment several times on BSS-2 and log the
+    recorded PSP amplitudes in a DataFrame.
+
+    :param length: Number of compartments in the chain.
+    :param repetitions: Number of times the experiment should be repeated.
+    :param parameters: Leak and inter-compartment conductance.
+    :param input_neurons: Number of synchronous inputs.
+    :param input_weight: Synaptic weight of each input.
+    :param calibration: Path to portable binary calibration. If not provided
+        the latest nightly calibration is used.
+    :returns: DataFrame with PSP amplitudes for each repetition.
+    '''
+    calibration = Path(nightly_calib_path() if calibration is None
+                       else calibration)
+
+    experiment = AttenuationExperiment(calibration,
+                                       length=length,
+                                       input_neurons=input_neurons,
+                                       input_weight=input_weight)
+
+    params = expand_params(experiment, parameters)
+    experiment.set_parameters(params)
+
+    result = record_variations(experiment, repetitions)
+    result.attrs['license'] = get_license_and_chip()
+    result.attrs['parameters'] = params
+    result.attrs['calibration'] = str(calibration.resolve())
+    result.attrs['input_neurons'] = input_neurons
+    result.attrs['input_weight'] = input_weight
+    result.attrs['experiment'] = 'attenuation_bss'
+
+    return result
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description='Perform the ChainAttenuation experiment several times '
+                    'and save the PSP heights in a pickled DataFrame.')
+    parser.add_argument("-mode",
+                        help="Perform the experiment on BSS-2 or in arbor.",
+                        type=str,
+                        default='bss',
+                        choices=['bss', 'arbor'])
+    parser.add_argument("-length",
+                        help="Length of compartment chain.",
+                        type=int,
+                        default=4)
+    parser.add_argument("-n_repetitions",
+                        help="Number of times the experiment is performed.",
+                        type=int,
+                        default=100)
+    parser.add_argument("-parameters",
+                        help="Leak/inter-compartment conductance (CapMem "
+                             "values for BSS-2) or membrane/inter-compartment "
+                             "time constant (in ms for arbor). The first "
+                             "value is for the leak, the second for the "
+                             "inter-compartment conductance.",
+                        nargs=2,
+                        type=float)
+    add_bss_psp_args(parser)
+    args = parser.parse_args()
+
+    data = main(args.length, args.n_repetitions, args.parameters,
+                input_neurons=args.input_neurons,
+                input_weight=args.input_weight,
+                calibration=args.calibration)
+    data.to_pickle('attenuation_variations.pkl')

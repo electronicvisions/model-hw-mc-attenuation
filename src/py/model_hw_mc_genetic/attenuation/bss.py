@@ -1,3 +1,4 @@
+import argparse
 from typing import List, Optional
 from pathlib import Path
 from datetime import datetime
@@ -201,3 +202,35 @@ def expand_params(experiment: AttributeError,
 
     # return default values
     return default_conductance_limits.mean(1).repeat(experiment.length)[:-1]
+
+
+def add_bss_psp_args(parser: argparse.ArgumentParser
+                     ) -> argparse._ArgumentGroup:
+    '''
+    Add arguments which are related to an attenuation experiment on BSS-2
+    which use synaptic inputs to measure the attenuation.
+
+    Add arguments '-input_neurons' and '-input_weight'.
+
+    :param parser: Parser to which the arguments are added.
+    :returns: Group with the added options.
+    '''
+    group = parser.add_argument_group(
+        'BSS-2 - Attenuation of EPSPs',
+        description='Options which control how an experiment on BSS-2 which '
+                    'measures the attenuation of excitatory post-synaptic '
+                    'is configured.')
+    parser.add_argument('-calibration',
+                        type=str,
+                        help='Path to portable binary calibration. If not '
+                             'provided the latest nightly calibration is '
+                             'used.')
+    group.add_argument("-input_neurons",
+                       help="Number of synchronous inputs.",
+                       type=int,
+                       default=10)
+    group.add_argument("-input_weight",
+                       help="Input weight for each neuron.",
+                       type=int,
+                       default=30)
+    return group
