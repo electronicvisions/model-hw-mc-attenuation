@@ -41,7 +41,7 @@ class AttenuationExperiment(Base):
                  input_weight: int = 63) -> None:
         super().__init__(length)
 
-        self.calibration = calibration
+        self.calibration = calibration.resolve()
         self.input_neurons = input_neurons
         self.input_weight = input_weight
 
@@ -138,42 +138,34 @@ class AttenuationExperiment(Base):
         self.set_parameters(parameters)
         return extract_psp_heights(self.record_membrane_traces())
 
+    def record_data(self, parameters: np.ndarray) -> neo.Block:
+        '''
+        Record membrane traces in each compartment.
 
-def record_data(calibration: Path, parameters: np.ndarray,
-                length: int = 5,
-                input_neurons: Optional[int] = None,
-                input_weight: Optional[int] = None) -> neo.Block:
-    '''
-    Record input traces for different compartments in a chain of compartments.
+        The recorded traces and meta data relavant for the experiment are
+        saved in a :class:`neo.Block`.
 
-    :param calibration: Path to portable binary calibration.
-    :param parameters: Leak and inter-compartment conductance. Can be set
-        globally or locally, compare
-        :meth:`~AttenuationExperiment.set_parameters`.
-    :param length: Number of compartments in the chain.
-    :param input_neurons: Number of synchronous inputs.
-    :param input_weight: Synaptic weight of each input.
-    '''
-    # configure chain
-    chain_experiment = AttenuationExperiment(calibration, length,
-                                             input_weight=input_weight,
-                                             input_neurons=input_neurons)
-    chain_experiment.set_parameters(parameters)
+        :param parameters: Leak and inter-compartment conductance. Can be set
+            globally or locally, compare
+            :meth:`~AttenuationExperiment.set_parameters`.
+        '''
+        # configure chain
+        self.set_parameters(parameters)
 
-    # record data
-    trace = chain_experiment.record_membrane_traces()
+        # record data
+        trace = self.record_membrane_traces()
 
-    # save data in block
-    block = neo.Block()
-    block.segments.append(neo.Segment())
-    block.segments[0].irregularlysampledsignals.extend(trace)
-    block.annotate(calibration=str(calibration.resolve()),
-                   length=length,
-                   date=str(datetime.now()),
-                   hicann=get_license_and_chip(),
-                   input_neurons=input_neurons,
-                   input_weight=input_weight,
-                   parameters=parameters,
-                   spike_times=chain_experiment.spike_times)
+        # save data in block
+        block = neo.Block()
+        block.segments.append(neo.Segment())
+        block.segments[0].irregularlysampledsignals.extend(trace)
+        block.annotate(calibration=str(self.calibration),
+                       length=self.length,
+                       date=str(datetime.now()),
+                       hicann=get_license_and_chip(),
+                       input_neurons=self.input_neurons,
+                       input_weight=self.input_weight,
+                       parameters=parameters,
+                       spike_times=self.spike_times)
 
-    return block
+        return block
