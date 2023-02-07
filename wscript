@@ -65,7 +65,8 @@ def build_host_python(bld):
         install_path="${PREFIX}/bin/tests/hw",
         pylint_config=join(get_toplevel_path(), "code-format", "pylintrc"),
         pycodestyle_config=join(get_toplevel_path(), "code-format", "pycodestyle"),
-        skip_run=not bld.env.DLSvx_HARDWARE_AVAILABLE)
+        skip_run=not bld.env.DLSvx_HARDWARE_AVAILABLE,
+        test_timeout=120)
 
     bld(name=f"{EXPERIMENT_NAME}-python_swtests",
         tests=bld.path.ant_glob("tests/sw/py/**/*.py"),
@@ -73,5 +74,6 @@ def build_host_python(bld):
         use=f"{EXPERIMENT_NAME}-python_libraries",
         install_path="${PREFIX}/bin/tests/sw",
         pylint_config=join(get_toplevel_path(), "code-format", "pylintrc"),
-        pycodestyle_config=join(get_toplevel_path(), "code-format", "pycodestyle"))
+        pycodestyle_config=join(get_toplevel_path(), "code-format", "pycodestyle"),
+        test_timeout=120)
 

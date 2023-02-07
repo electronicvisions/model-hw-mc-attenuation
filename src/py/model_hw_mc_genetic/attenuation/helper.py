@@ -6,11 +6,13 @@ space.
 '''
 from itertools import product
 from datetime import datetime
+from pathlib import Path
 from typing import Tuple
 
 import pandas as pd
 import numpy as np
 
+from model_hw_mc_genetic.attenuation import Observation, fit_length_constant
 from model_hw_mc_genetic.attenuation.base import Base as AttenuationExperiment
 
 
@@ -108,6 +110,65 @@ def get_bounds(data_frame: pd.DataFrame) -> AttenuationExperiment:
         # bounds for tau, offset, scaling factor
         return ([0, -offset, 0],
                 [np.inf, offset, np.inf])
+
+    raise RuntimeError(f'The experiment of type "{attrs["experiment"]}" is '
+                       'not supported.')
+
+
+def extract_observation(amplitudes: pd.DataFrame,
+                        observation: Observation) -> np.ndarray:
+    '''
+    Extract the given observation from the given amplitudes.
+
+    :param amplitudes: DataFrame with PSP amplitudes.
+    :param observation: Type of observation to extract.
+    :returns: The given observation for each row in the DataFrame.
+    '''
+    if observation == Observation.AMPLITUDES:
+        return amplitudes.values
+
+    length = np.sqrt(amplitudes.shape[1]).astype(int)
+    if observation == Observation.AMPLITUDES_FIRST:
+        return amplitudes.values.reshape(-1, length, length)[:, :, 0]
+    if observation == Observation.LENGTH_CONSTANT:
+        bounds = get_bounds(amplitudes)
+
+        def get_length_constant(row: pd.Series) -> float:
+            return fit_length_constant(
+                row.values.reshape(length, length)[:, 0], bounds=bounds)
+        return amplitudes.apply(get_length_constant, axis=1).values
+
+    raise ValueError(f'The observation "{observation}" is not supported.')
+
+
+# Avoid BSS/arbor specific imports at the top-levl such that they can be
+# executed individually without installing the dependencies for the other
+# experiment.
+# pylint: disable=import-outside-toplevel
+def get_experiment(target: pd.DataFrame) -> AttenuationExperiment:
+    '''
+    Create an attenuation experiment with the same parameters which were used
+    to record the target.
+
+    :param target: DataFrame with recorded amplitudes which will be used to
+        extract a target.
+    :returns: AttenuationExperiment with the same parameterization as used for
+        recording the target.
+    '''
+    attrs = target.attrs
+
+    if attrs['experiment'] == 'attenuation_bss':
+        from model_hw_mc_genetic.attenuation.bss import AttenuationExperiment \
+            as AttenuationBSS
+        return AttenuationBSS(Path(attrs['calibration']),
+                              length=attrs['length'],
+                              input_neurons=attrs['input_neurons'],
+                              input_weight=attrs['input_weight'])
+
+    if attrs['experiment'] == 'attenuation_arbor':
+        from model_hw_mc_genetic.attenuation.arbor import \
+            AttenuationExperiment as AttenuationArbor
+        return AttenuationArbor(length=attrs['length'])
 
     raise RuntimeError(f'The experiment of type "{attrs["experiment"]}" is '
                        'not supported.')

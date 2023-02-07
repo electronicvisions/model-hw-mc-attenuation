@@ -1,8 +1,16 @@
+from enum import Enum, auto
 from typing import List
 import numpy as np
 import neo
 from scipy.optimize import curve_fit
 import quantities as pq
+
+
+class Observation(Enum):
+    AMPLITUDES = auto()  # all amplitudes
+    AMPLITUDES_FIRST = auto()  # amplitudes in the first compartment
+    # length constant of exponential fit to amplitudes_first
+    LENGTH_CONSTANT = auto()
 
 
 def extract_psp_heights(

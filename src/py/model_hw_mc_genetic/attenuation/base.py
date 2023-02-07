@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, List
 import numpy as np
 import torch
 
@@ -115,3 +115,29 @@ class Base(ABC):
 
         # return default values
         return self.default_parameters
+
+    def parameter_names(self, global_names: bool = False) -> List[str]:
+        '''
+        Get the names of the parameters which can be configured for the
+        experiment.
+
+        The parameters are the leak and inter-compartment conductance. The
+        number of parameters depends on the length of the chain.
+
+        :param global_names: Leak and inter-compartment conductances are set
+            globally. Do return the global parameter names.
+        :returns: Names for all parameters of the experiment.
+        '''
+        parameter_base_names = ['g_leak', 'g_icc']
+
+        # Global evaluation
+        if global_names:
+            return parameter_base_names
+
+        parameters = [f'{parameter_base_names[0]}_{comp}' for comp in
+                      range(self.length)]
+        parameters.extend(
+            [f'{parameter_base_names[1]}_{comp}_{comp + 1}' for comp in
+             range(self.length - 1)])
+
+        return parameters

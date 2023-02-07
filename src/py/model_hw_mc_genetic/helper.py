@@ -1,4 +1,14 @@
+from typing import List
+import numpy as np
+import pandas as pd
 from pyNN.common import BasePopulation
+
+
+class AttributeNotIdentical(Exception):
+    '''
+    Exception used py :func:`get_identical_attr` if the requested attribute
+    is not identical for all DataFrames.
+    '''
 
 
 def set_leak_conductance(pop: BasePopulation, value: int):
@@ -17,3 +27,69 @@ def set_leak_conductance(pop: BasePopulation, value: int):
     pop.set(leak_enable_multiplication=multiplication,
             leak_enable_division=division,
             leak_i_bias=value % 1023)
+
+
+def get_identical_attr(sample_dfs: List[pd.DataFrame], attribute: str) -> List:
+    '''
+    Compare the given attribute of different DataFrames and return its value
+    if its identical in all DataFrames.
+
+    Follows the annotations to the DataFrames to find the DataFrame from which
+    the target was extracted.
+
+    :param samples_dfs: List of DataFrames for which to extract the identical
+        attribute.
+    :param attribute: Name of the attribute to extract.
+    :return: Value of the attribute which is identical in all DataFrames.
+    :raises AttributeNotIdentical: If the attribute is not identical in all
+        DataFrames, i.e. it does not exist in all DataFrame or differs in at
+        least two.
+    '''
+    value = None
+
+    for sample_df in sample_dfs:
+        if attribute not in sample_df.attrs:
+            raise AttributeNotIdentical()
+        curr_value = sample_df.attrs[attribute]
+
+        # set value if unset, else compare to set values
+        if value is None:
+            value = curr_value
+        if np.any(value != curr_value):
+            raise AttributeNotIdentical()
+
+    return value
+
+
+def concat_dfs(*dfs: pd.DataFrame) -> pd.DataFrame:
+    '''
+    Combine several DataFrames.
+
+    Make sure that columns and attributes match.
+
+    :param dfs: DataFrames to concatenate.
+    :returns: Combined data fame.
+    '''
+    # check all attributes and columns agree
+    for df_0, df_1 in zip(dfs[:-1], dfs[1:]):
+        if df_0.attrs.keys() != df_1.attrs.keys():
+            raise RuntimeError('Attributes of DataFrames do not match')
+        # check values manually
+        for key in df_0.attrs:
+            if np.any(df_0.attrs[key] != df_1.attrs[key]):
+                raise RuntimeError('Attributes of DataFrames do not match')
+        if np.any(df_0.columns != df_1.columns):
+            raise RuntimeError('Columns of DataFrames do not match')
+
+    attrs = dfs[0].attrs
+    columns = dfs[0].columns
+
+    # pandas check of attributes fails for arrays -> remove
+    for data_frame in dfs:
+        data_frame.attrs = {}
+
+    # column sorting is changed by `concat` -> apply manually again
+    merged_df = pd.concat(dfs, ignore_index=True)[columns]
+    merged_df.attrs.update(attrs)
+
+    return merged_df

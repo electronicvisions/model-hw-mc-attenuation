@@ -390,9 +390,9 @@ class AttenuationExperiment(Base):
     @property
     def default_limits(self) -> np.ndarray:
         leak_cond = self.recipe.tau_mem_to_g_leak(
-            default_tau_limits[0] * pq.ms)
+            default_tau_limits[0, ::-1] * pq.ms)
         icc_cond = self.recipe.tau_icc_to_g_axial(
-            default_tau_limits[1] * pq.ms)
+            default_tau_limits[1, ::-1] * pq.ms)
 
         return np.array([leak_cond, icc_cond]).repeat(self.length, axis=0)[:-1]
 
