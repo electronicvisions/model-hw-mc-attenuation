@@ -2,6 +2,7 @@
 
 import inspect
 import unittest
+from pathlib import Path
 from typing import Callable, Set
 
 import matplotlib.pyplot as plt
@@ -42,7 +43,9 @@ class TestPairplot(unittest.TestCase):
 
         artists = pairplot(axs, data, labels=labels)
 
-        fig.savefig('test_pairplot.png')
+        results_folder = Path('test_plots')
+        results_folder.mkdir(exist_ok=True)
+        fig.savefig(results_folder.joinpath('pairplot.png'))
 
 
 class Generic1dTest(unittest.TestCase):
@@ -88,7 +91,10 @@ class Generic1dTest(unittest.TestCase):
             plotting_func(self.ax, self.samples)
             plotting_func(self.ax, self.samples, self.limits)
 
-            self.fig.savefig(f'test_{plotting_func.__name__}.png')
+            results_folder = Path('test_plots')
+            results_folder.mkdir(exist_ok=True)
+            self.fig.savefig(results_folder.joinpath(
+                f'{plotting_func.__name__}.png'))
 
         return test_func
 
@@ -149,7 +155,10 @@ class Generic2dTest(unittest.TestCase):
             plotting_func(self.ax, self.x_values, self.y_values)
             plotting_func(self.ax, self.x_values, self.y_values, self.limits)
 
-            self.fig.savefig(f'test_{plotting_func.__name__}.png')
+            results_folder = Path('test_plots')
+            results_folder.mkdir(exist_ok=True)
+            self.fig.savefig(results_folder.joinpath(
+                f'{plotting_func.__name__}.png'))
 
         return test_func
 

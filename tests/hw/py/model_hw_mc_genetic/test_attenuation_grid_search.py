@@ -45,7 +45,9 @@ class TestGridSearch(unittest.TestCase):
         plot_parameter_space(axs[2], filtered_data)
         axs[2].set_title('Deviation Heights')
 
-        fig.savefig(f'test_grid_search_{suffix}.png', dpi=300)
+        results_folder = Path('test_plots')
+        results_folder.mkdir(exist_ok=True)
+        fig.savefig(results_folder.joinpath(f'grid_search_{suffix}.png'))
 
     def test_bss(self):
         parameters = np.array(list(product(np.linspace(0, 1022, 3),

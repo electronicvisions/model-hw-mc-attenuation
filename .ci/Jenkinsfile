@@ -14,3 +14,11 @@ Map<String, Object> pipelineOptions = [
 withCcache() {
 	wafDefaultPipeline(pipelineOptions)
 }
+
+// Archive plots from tests
+stage(name: "Archive Test Plots") {
+	runOnSlave(label: "frontend") {
+		archiveArtifacts(artifacts: 'model-hw-mc-genetic/test_plots/*',
+		                 allowEmptyArchive: true)
+	}
+}
