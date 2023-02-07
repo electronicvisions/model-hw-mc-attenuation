@@ -8,8 +8,8 @@ import numpy as np
 
 import pynn_brainscales.brainscales2 as pynn
 
-from model_hw_mc_genetic.scripts.chain_attenuation_grid_search import main
-from model_hw_mc_genetic.scripts.plot_grid_search_result import \
+from model_hw_mc_genetic.scripts.attenuation_grid_search import main
+from model_hw_mc_genetic.scripts.plot_grid_search import \
     extract_observable, plot_parameter_space
 
 

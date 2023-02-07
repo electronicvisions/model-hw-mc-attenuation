@@ -110,4 +110,4 @@ if __name__ == '__main__':
                 length=args.length,
                 input_weight=args.input_weight,
                 input_neurons=args.input_neurons)
-    data.to_pickle('chain_attenuation_grid_search.pkl')
+    data.to_pickle('attenuation_grid_search.pkl')
