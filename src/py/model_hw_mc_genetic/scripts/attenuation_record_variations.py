@@ -9,7 +9,7 @@ from pynn_brainscales.brainscales2.helper import nightly_calib_path
 from model_hw_si_nsc_dendrites.helper import get_license_and_chip
 
 from model_hw_mc_genetic.attenuation.bss import AttenuationExperiment, \
-    expand_params, add_bss_psp_args
+    add_bss_psp_args
 from model_hw_mc_genetic.attenuation.helper import record_variations
 
 
@@ -40,7 +40,7 @@ def main(length: int, repetitions: int,
                                        input_neurons=input_neurons,
                                        input_weight=input_weight)
 
-    params = expand_params(experiment, parameters)
+    params = experiment.expand_parameters(parameters)
     experiment.set_parameters(params)
 
     result = record_variations(experiment, repetitions)

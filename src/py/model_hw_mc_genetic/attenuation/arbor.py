@@ -387,44 +387,45 @@ class AttenuationExperiment(Base):
                        experiment='attenuation_arbor')
         return block
 
+    @property
+    def default_limits(self) -> np.ndarray:
+        leak_cond = self.recipe.tau_mem_to_g_leak(
+            default_tau_limits[0] * pq.ms)
+        icc_cond = self.recipe.tau_icc_to_g_axial(
+            default_tau_limits[1] * pq.ms)
 
-def time_constants_to_conductance(experiment: AttenuationExperiment,
-                                  time_constants: np.ndarray) -> np.ndarray:
-    '''
-    Convert membrane time constant and inter-compartment time constant in
-    conductances.
+        return np.array([leak_cond, icc_cond]).repeat(self.length, axis=0)[:-1]
 
-    If no time constants are supplied a default value is returned.
+    def time_constants_to_conductance(self,
+                                      time_constants: Optional[np.ndarray]
+                                      ) -> np.ndarray:
+        '''
+        Convert membrane time constant and inter-compartment time constant in
+        conductances.
 
-    :param experiment: AttenuationExperiment for which to determine the
-        convert the time constants to conductances.
-    :param time_constants: Time constants to convert. The time constants can
-        represent global values (length of array is two) or local values
-        (size of array is `2 * length - 1`). If not set default values are
-        returned.
-    :returns: Leak and inter-compartment conductance. One leak conductance for
-        each compartment in the chain and the inter-compartment conductance
-        for each connection between compartments.
-        The leak conductance is given in S/cm^2, the inter-compartment
-        conductance in S/cm.
-    '''
-    if time_constants is None:
-        # chose defaults in the center of the translated conductances.
-        min_values = time_constants_to_conductance(
-            experiment, default_tau_limits[:, 1] * pq.ms)
-        max_values = time_constants_to_conductance(
-            experiment, default_tau_limits[:, 0] * pq.ms)
+        If no time constants are supplied a default value is returned.
 
-        return np.mean([min_values, max_values], axis=0)
+        :param time_constants: Time constants to convert. The time constants
+            can represent global values (length of array is two) or local
+            values (size of array is `2 * length - 1`). If not set default
+            values are returned.
+        :returns: Leak and inter-compartment conductance. One leak conductance
+            for each compartment in the chain and the inter-compartment
+            conductance for each connection between compartments.
+            The leak conductance is given in S/cm^2, the inter-compartment
+            conductance in S/cm.
+        '''
+        if time_constants is None:
+            return self.default_parameters
 
-    length = experiment.length
-    if len(time_constants) == 2:
-        time_constants = np.repeat(time_constants, length)[:-1]
+        length = self.length
+        if len(time_constants) == 2:
+            time_constants = np.repeat(time_constants, length)[:-1]
 
-    leak_cond = experiment.recipe.tau_mem_to_g_leak(time_constants[:length])
-    icc_cond = experiment.recipe.tau_icc_to_g_axial(time_constants[length:])
+        leak_cond = self.recipe.tau_mem_to_g_leak(time_constants[:length])
+        icc_cond = self.recipe.tau_icc_to_g_axial(time_constants[length:])
 
-    return np.concatenate([leak_cond, icc_cond])
+        return np.concatenate([leak_cond, icc_cond])
 
 
 # default limits for leak and inter-compartment time constants (in ms)

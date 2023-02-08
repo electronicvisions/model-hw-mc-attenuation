@@ -174,35 +174,13 @@ class AttenuationExperiment(Base):
 
         return block
 
+    @property
+    def default_limits(self) -> np.ndarray:
+        return default_conductance_limits.repeat(self.length, axis=0)[:-1]
+
 
 # default limits for leak and inter-compartment conductance
 default_conductance_limits = np.array([[0, 1022], [0, 1022]])
-
-
-def expand_params(experiment: AttributeError,
-                  parameters: Optional[np.ndarray]) -> np.ndarray:
-    '''
-    Expand the given parameters to individual parameters or return default
-    values.
-
-    :parameters: Parameters of the leak and inter compartment conductance
-        to expand if needed. If no parameters are supplied the default
-        parameters are returned.
-    :returns: Parameters for each compartment/inter-compartment connection
-        individually.
-    '''
-
-    if parameters is not None:
-        if len(parameters) == 2 * experiment.length - 1:
-            return parameters
-        if len(parameters) == 2:
-            return np.repeat(parameters, experiment.length)[:-1]
-        raise ValueError('The length of the supplied parameters does not '
-                         'match the expected length of 2 or '
-                         f'{experiment.length}.')
-
-    # return default values
-    return default_conductance_limits.mean(1).repeat(experiment.length)[:-1]
 
 
 def add_bss_psp_args(parser: argparse.ArgumentParser

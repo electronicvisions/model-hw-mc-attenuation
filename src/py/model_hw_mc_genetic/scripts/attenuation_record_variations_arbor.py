@@ -4,8 +4,7 @@ from typing import Optional, Tuple
 
 import pandas as pd
 
-from model_hw_mc_genetic.attenuation.arbor import AttenuationExperiment, \
-    time_constants_to_conductance
+from model_hw_mc_genetic.attenuation.arbor import AttenuationExperiment
 from model_hw_mc_genetic.attenuation.helper import record_variations
 
 
@@ -22,7 +21,7 @@ def main(length: int, repetitions: int,
     '''
 
     experiment = AttenuationExperiment(length)
-    params = time_constants_to_conductance(experiment, parameters)
+    params = experiment.time_constants_to_conductance(parameters)
     experiment.set_parameters(params)
 
     result = record_variations(experiment, repetitions)

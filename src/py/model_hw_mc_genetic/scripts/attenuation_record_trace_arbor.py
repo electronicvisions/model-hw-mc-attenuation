@@ -4,8 +4,7 @@ import argparse
 from typing import Optional, Tuple
 import neo
 
-from model_hw_mc_genetic.attenuation.arbor import AttenuationExperiment, \
-    time_constants_to_conductance
+from model_hw_mc_genetic.attenuation.arbor import AttenuationExperiment
 
 
 def main(length: int,
@@ -20,7 +19,7 @@ def main(length: int,
     '''
     experiment = AttenuationExperiment(length)
 
-    params = time_constants_to_conductance(experiment, parameters)
+    params = experiment.time_constants_to_conductance(parameters)
 
     return experiment.record_data(params)
 

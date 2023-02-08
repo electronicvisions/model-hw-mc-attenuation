@@ -70,3 +70,48 @@ class Base(ABC):
             are the responses to different input sites.
         '''
         raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def default_limits(self) -> np.ndarray:
+        '''
+        Return default limits of the parameters of this experiment.
+
+        :return: Limits of the experiment parameters. The different rows
+            represent different parameters, the left column the lower limit
+            and the right column the upper limit.
+        '''
+        raise NotImplementedError
+
+    @property
+    def default_parameters(self) -> np.ndarray:
+        '''
+        Return default parameters of this experiment.
+
+        :return: Parameters at the center of the experiment limits.
+        '''
+        return self.default_limits.mean(1)
+
+    def expand_parameters(self, parameters: Optional[np.ndarray]
+                          ) -> np.ndarray:
+        '''
+        Expand the given parameters to individual parameters or return default
+        values.
+
+        :parameters: Parameters of the leak and inter compartment conductance
+            to expand if needed. If no parameters are supplied the default
+            parameters are returned.
+        :returns: Parameters for each compartment/inter-compartment connection
+            individually.
+        '''
+        if parameters is not None:
+            if len(parameters) == 2 * self.length - 1:
+                return parameters
+            if len(parameters) == 2:
+                return np.repeat(parameters, self.length)[:-1]
+            raise ValueError('The length of the supplied parameters does not '
+                             'match the expected length of 2 or '
+                             f'{self.length}.')
+
+        # return default values
+        return self.default_parameters

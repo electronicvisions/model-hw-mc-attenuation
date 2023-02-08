@@ -9,7 +9,7 @@ import neo
 from pynn_brainscales.brainscales2.helper import nightly_calib_path
 
 from model_hw_mc_genetic.attenuation.bss import AttenuationExperiment, \
-    expand_params, add_bss_psp_args
+    add_bss_psp_args
 
 
 def main(length: int,
@@ -37,7 +37,7 @@ def main(length: int,
                                        input_neurons=input_neurons,
                                        input_weight=input_weight)
 
-    return experiment.record_data(expand_params(experiment, parameters))
+    return experiment.record_data(experiment.expand_parameters(parameters))
 
 
 if __name__ == '__main__':
