@@ -386,3 +386,46 @@ class AttenuationExperiment(Base):
                        parameters=parameters,
                        spike_times=self.spike_times)
         return block
+
+
+def time_constants_to_conductance(experiment: AttenuationExperiment,
+                                  time_constants: np.ndarray) -> np.ndarray:
+    '''
+    Convert membrane time constant and inter-compartment time constant in
+    conductances.
+
+    If no time constants are supplied a default value is returned.
+
+    :param experiment: AttenuationExperiment for which to determine the
+        convert the time constants to conductances.
+    :param time_constants: Time constants to convert. The time constants can
+        represent global values (length of array is two) or local values
+        (size of array is `2 * length - 1`). If not set default values are
+        returned.
+    :returns: Leak and inter-compartment conductance. One leak conductance for
+        each compartment in the chain and the inter-compartment conductance
+        for each connection between compartments.
+        The leak conductance is given in S/cm^2, the inter-compartment
+        conductance in S/cm.
+    '''
+    if time_constants is None:
+        # chose defaults in the center of the translated conductances.
+        min_values = time_constants_to_conductance(
+            experiment, default_tau_limits[:, 1] * pq.ms)
+        max_values = time_constants_to_conductance(
+            experiment, default_tau_limits[:, 0] * pq.ms)
+
+        return np.mean([min_values, max_values], axis=0)
+
+    length = experiment.length
+    if len(time_constants) == 2:
+        time_constants = np.repeat(time_constants, length)[:-1]
+
+    leak_cond = experiment.recipe.tau_mem_to_g_leak(time_constants[:length])
+    icc_cond = experiment.recipe.tau_icc_to_g_axial(time_constants[length:])
+
+    return np.concatenate([leak_cond, icc_cond])
+
+
+# default limits for leak and inter-compartment time constants (in ms)
+default_tau_limits = np.array([[1, 20], [1, 20]])
