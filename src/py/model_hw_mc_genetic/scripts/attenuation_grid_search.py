@@ -11,7 +11,7 @@ from model_hw_si_nsc_dendrites.helper import get_license_and_chip
 
 from model_hw_mc_genetic.attenuation.helper import grid_search
 from model_hw_mc_genetic.attenuation.bss import AttenuationExperiment, \
-    default_conductance_limits
+    default_conductance_limits, add_bss_psp_args
 
 
 if __name__ == '__main__':
@@ -45,18 +45,7 @@ if __name__ == '__main__':
                         nargs=3,
                         type=float,
                         default=default_conductance_limits[1].tolist() + [10])
-    parser.add_argument('-calibration',
-                        type=str,
-                        help='Path to binary calibration. If not supplied '
-                             'the nightly calibration is used.')
-    parser.add_argument("-input_neurons",
-                        help="Number of synchronous inputs.",
-                        type=int,
-                        default=10)
-    parser.add_argument("-input_weight",
-                        help="Input weight for each neuron.",
-                        type=int,
-                        default=30)
+    add_bss_psp_args(parser)
     args = parser.parse_args()
 
     if args.calibration is None:
