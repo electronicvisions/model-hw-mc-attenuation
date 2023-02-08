@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 
-from itertools import product
 import unittest
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 import quantities as pq
 
@@ -16,7 +14,7 @@ from model_hw_mc_genetic.attenuation.bss import AttenuationExperiment as \
 from model_hw_mc_genetic.attenuation.arbor import \
     AttenuationExperiment as AttenuationArbor
 
-from model_hw_mc_genetic.scripts.attenuation_grid_search import main
+from model_hw_mc_genetic.attenuation.helper import grid_search
 from model_hw_mc_genetic.scripts.plot_grid_search import \
     extract_observable, plot_parameter_space
 
@@ -36,12 +34,12 @@ class TestGridSearch(unittest.TestCase):
         plot_parameter_space(axs[0], filtered_data)
         axs[0].set_title('Length Constant')
 
-        filtered_data = extract_observable(data, 'height')
+        filtered_data = extract_observable(data, 'amplitude')
         plot_parameter_space(axs[1], filtered_data)
         axs[1].set_title('Height')
 
-        filtered_data = extract_observable(data, 'deviation_heights',
-                                           target=data['psp_heights'])
+        filtered_data = extract_observable(data, 'deviation_amplitudes',
+                                           target=data['amplitudes'])
         plot_parameter_space(axs[2], filtered_data)
         axs[2].set_title('Deviation Heights')
 
@@ -50,15 +48,14 @@ class TestGridSearch(unittest.TestCase):
         fig.savefig(results_folder.joinpath(f'grid_search_{suffix}.png'))
 
     def test_bss(self):
-        parameters = np.array(list(product(np.linspace(0, 1022, 3),
-                                           np.linspace(0, 1022, 3))))
-
         attenuation_experiment = AttenuationBSS(
             Path(pynn.helper.nightly_calib_path()))
 
-        data = main(attenuation_experiment, parameters)
+        steps = 3
+        data = grid_search(attenuation_experiment, g_leak=(0, 1022, steps),
+                           g_icc=(0, 1022, steps))
 
-        self.assertEqual(len(parameters), len(data))
+        self.assertEqual(steps**2, len(data))
         self.plotting_test(data, 'bss')
 
     def test_arbor(self):
@@ -68,13 +65,12 @@ class TestGridSearch(unittest.TestCase):
         g_icc_lim = attenuation_experiment.recipe.tau_icc_to_g_axial(
             [10, 2] * pq.ms)
 
-        parameters = np.array(
-            list(product(np.linspace(g_leak_lim[0], g_leak_lim[1], 5),
-                         np.linspace(g_icc_lim[0], g_icc_lim[1], 5))))
+        steps = 5
+        data = grid_search(attenuation_experiment,
+                           g_leak=(g_leak_lim[0], g_leak_lim[1], steps),
+                           g_icc=(g_icc_lim[0], g_icc_lim[1], steps))
 
-        data = main(attenuation_experiment, parameters)
-
-        self.assertEqual(len(parameters), len(data))
+        self.assertEqual(steps**2, len(data))
         self.plotting_test(data, 'arbor')
 
 

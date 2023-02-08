@@ -42,12 +42,12 @@ def plot_parameter_space(ax: plt.Axes, data: pd.DataFrame):
 def extract_observable(data: pd.DataFrame, observable: str,
                        target: Optional[pd.DataFrame] = None):
     '''
-    Calculate the given observable from the EPSP heights.
+    Calculate the given observable from the EPSP amplitudes.
 
-    :param data: DataFrame with parameters and EPSP heights.
+    :param data: DataFrame with parameters and EPSP amplitudes.
     :param observable: Observable to extract from the data.
     :param target: DataFrame with target values which should be observed.
-        Only needed if observable is 'deviation_heights'.
+        Only needed if observable is 'deviation_amplitudes'.
     :returns: DataFrame with the original parameters and the extracted
         observable.
     '''
@@ -55,21 +55,21 @@ def extract_observable(data: pd.DataFrame, observable: str,
 
     # function to extract length constants
     def calculate_length_constants(row: pd.Series) -> float:
-        # Extract PSP heights in first compartment
-        heights = row['psp_heights'].values.\
+        # Extract PSP amplitudes in first compartment
+        amplitudes = row['amplitudes'].values.\
             reshape(chain_length, chain_length)[:, 0]
-        return fit_length_constant(heights)
+        return fit_length_constant(amplitudes)
 
     # Filter for desired observable
     result = data.loc[:, 'parameters'].copy(deep=True)
     if observable == 'length_constant':
         result['Length Constant'] = \
             data.apply(calculate_length_constants, axis=1)
-    elif observable == 'height':
-        result['Height'] = data.loc[:, 'psp_heights'].values[:, 0]
-    elif observable == 'deviation_heights':
+    elif observable == 'amplitude':
+        result['Height'] = data.loc[:, 'amplitudes'].values[:, 0]
+    elif observable == 'deviation_amplitudes':
         target = target.mean(axis=0)
-        measured = data.loc[:, 'psp_heights']
+        measured = data.loc[:, 'amplitudes']
 
         # max 30 LSB deviation per compartment
         max_deviation = np.sqrt(30**2 * chain_length)
@@ -96,17 +96,17 @@ if __name__ == '__main__':
     parser.add_argument('-observable',
                         type=str,
                         default='length_constant',
-                        choices=['length_constant', 'height',
-                                 'deviation_heights'],
-                        help='Observable to plot. If height is selected, the '
-                             'EPSP height in the first compartment is '
+                        choices=['length_constant', 'amplitude',
+                                 'deviation_amplitudes'],
+                        help='Observable to plot. If amplitude is selected, '
+                             'the EPSP amplitudes in the first compartment is '
                              'plotted. For the deviation the Euclidean '
-                             'distance between the heights is plotted.')
+                             'distance between the amplitudes is plotted.')
     parser.add_argument('-target',
                         type=str,
                         help='Path to pickled DataFrame with target '
                              'observation. Only needed if `observable` is '
-                             '"deviation_heights".')
+                             '"deviation_amplitudes".')
     args = parser.parse_args()
 
     input_file = Path(args.grid_search_result)
