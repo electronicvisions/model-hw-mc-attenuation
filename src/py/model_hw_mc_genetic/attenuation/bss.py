@@ -121,7 +121,8 @@ class AttenuationExperiment(Base):
 
         return results
 
-    def measure_response(self, parameters: Optional[np.ndarray]) -> np.ndarray:
+    def measure_response(self, parameters: Optional[np.ndarray] = None
+                         ) -> np.ndarray:
         '''
         Measure the PSP heights in response to synaptic inputs in the different
         compartments.
@@ -135,7 +136,8 @@ class AttenuationExperiment(Base):
             response in the second and so on. The different columns are the
             responses to different input sites.
         '''
-        self.set_parameters(parameters)
+        if parameters is not None:
+            self.set_parameters(parameters)
         return extract_psp_heights(self.record_membrane_traces())
 
     def record_data(self, parameters: np.ndarray) -> neo.Block:
