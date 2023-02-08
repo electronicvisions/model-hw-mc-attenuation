@@ -382,9 +382,9 @@ class AttenuationExperiment(Base):
         block.segments[0].irregularlysampledsignals.extend(results)
         block.annotate(length=self.length,
                        date=str(datetime.now()),
-                       license='arbor',
                        parameters=parameters,
-                       spike_times=self.spike_times)
+                       spike_times=self.spike_times,
+                       experiment='attenuation_arbor')
         return block
 
 

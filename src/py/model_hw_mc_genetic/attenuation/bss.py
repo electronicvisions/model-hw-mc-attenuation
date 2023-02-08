@@ -169,7 +169,8 @@ class AttenuationExperiment(Base):
                        input_neurons=self.input_neurons,
                        input_weight=self.input_weight,
                        parameters=parameters,
-                       spike_times=self.spike_times)
+                       spike_times=self.spike_times,
+                       experiment='attenuation_bss')
 
         return block
 
