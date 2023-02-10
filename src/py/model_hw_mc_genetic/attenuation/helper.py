@@ -39,8 +39,8 @@ def grid_search(chain_experiment: AttenuationExperiment,
     length = chain_experiment.length
     param_col = pd.MultiIndex.from_product([['parameters'],
                                             ['g_leak', 'g_icc']])
-    measurements = [str(idx) for idx in np.arange(length**2)]
-    amp_col = pd.MultiIndex.from_product([['amplitudes'], measurements])
+    cols = [f"A_{i}{j}" for i, j in product(range(length), range(length))]
+    amp_col = pd.MultiIndex.from_product([['amplitudes'], cols])
     columns = pd.MultiIndex.from_tuples(list(param_col) + list(amp_col))
 
     result = pd.DataFrame(np.zeros([len(g_leak_icc), 2 + length**2]),
