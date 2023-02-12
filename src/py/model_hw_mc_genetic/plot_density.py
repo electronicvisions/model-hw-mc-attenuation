@@ -213,7 +213,8 @@ def plot_2d_enumerate(ax: plt.Axes, x_values: np.ndarray, y_values: np.ndarray,
     :param limits: Limits of the input data. Shaped (2, 2) with the limits
         for the x-values in the first row and the values for the y-data
         in the second.
-    :return: List of created annotations.
+    :return: Numpy array of dtype object with one element which is a list of
+        the created annotations.
     '''
 
     my_style = {'bbox': {'boxstyle': 'circle, pad=0.3', 'fc': 'w', 'ec': 'k',
@@ -229,7 +230,10 @@ def plot_2d_enumerate(ax: plt.Axes, x_values: np.ndarray, y_values: np.ndarray,
     if limits is not None:
         ax.set_xlim(limits[0])
         ax.set_ylim(limits[1])
-    return annotations
+
+    to_be_returned = np.empty(1, dtype=object)
+    to_be_returned[0] = annotations
+    return to_be_returned
 
 
 def _fit_kde(x_values: np.ndarray, y_values: np.ndarray,
