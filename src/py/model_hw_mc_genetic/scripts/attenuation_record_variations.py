@@ -73,10 +73,8 @@ if __name__ == '__main__':
                         default=100)
     parser.add_argument("-parameters",
                         help="Leak/inter-compartment conductance (CapMem "
-                             "values for BSS-2) or membrane/inter-compartment "
-                             "time constant (in ms for arbor). The first "
-                             "value is for the leak, the second for the "
-                             "inter-compartment conductance.",
+                             "values). The first value is for the leak, the "
+                             "second for the inter-compartment conductance.",
                         nargs=2,
                         type=float)
     add_bss_psp_args(parser)
