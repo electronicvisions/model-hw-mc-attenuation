@@ -1,5 +1,5 @@
 import argparse
-from typing import List, Optional
+from typing import List, Optional, Sequence
 from pathlib import Path
 from datetime import datetime
 import numpy as np
@@ -181,6 +181,51 @@ class AttenuationExperiment(Base):
 
 # default limits for leak and inter-compartment conductance
 default_conductance_limits = np.array([[0, 1022], [0, 1022]])
+
+
+def _split_traces(trace: neo.IrregularlySampledSignal, n_average: int
+                  ) -> List[neo.IrregularlySampledSignal]:
+    '''
+    Split the provided membrane trace in `n_average` equally sized traces.
+
+    :param trace: Recording of a compartment's membrane trace.
+    :param n_average: Number of experiment repetitions.
+    :returns: List containing equally sized splits of the provided trace.
+    '''
+    intervals = trace.duration / n_average
+    splitted_traces = []
+    for n_split in range(n_average):
+        splitted_traces.append(trace.time_slice(
+            trace.t_start + n_split * intervals,
+            trace.t_start + (n_split + 1) * intervals))
+
+    # Make length of all splits equal
+    max_common_len = np.min([len(trace) for trace in splitted_traces])
+    common_len_signal = [trace[:max_common_len] for trace in splitted_traces]
+
+    return common_len_signal
+
+
+def _average_traces(traces: Sequence[neo.IrregularlySampledSignal]
+                    ) -> neo.IrregularlySampledSignal:
+    '''
+    Calculate the average trace from the provided traces.
+
+    The times are not averaged but the time of the first trace is used for the
+    output signal. All traces must have the same number of samples.
+
+    :param traces: Traces that will be averaged to one trace.
+    :returns: Average of the given traces. The annotation and times are
+        extracted from the first trace.
+    '''
+    times = traces[0].times
+    traces_magnitude = [s.magnitude for s in traces]
+    mag = np.mean(traces_magnitude, axis=0)
+
+    signal = neo.IrregularlySampledSignal(times, mag * traces[0].units)
+    signal.annotate(**traces[0].annotations)
+
+    return signal
 
 
 def add_bss_psp_args(parser: argparse.ArgumentParser
