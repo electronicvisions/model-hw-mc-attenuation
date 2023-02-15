@@ -30,6 +30,8 @@ class AttenuationExperiment(Base):
     :ivar calibration: Path to portable binary calibration.
     :ivar input_neurons: Number of synchronous inputs.
     :ivar input_weight: Synaptic weight of each input.
+    :ivar n_average: Number of times the experiment is executed and the results
+        are averaged over.
 
     :ivar runtime: Experiment runtime in ms (hw domain).
     :ivar spike_times: Times at which the different inputs are injected.
@@ -39,16 +41,22 @@ class AttenuationExperiment(Base):
     def __init__(self, calibration: Path, length: int = 5,
                  *,
                  input_neurons: int = 15,
-                 input_weight: int = 63) -> None:
+                 input_weight: int = 63,
+                 n_average: int = 1) -> None:
         super().__init__(length)
 
         self.calibration = calibration.resolve()
         self.input_neurons = input_neurons
         self.input_weight = input_weight
+        if n_average < 1:
+            raise ValueError(
+                f"n_average must be greater than 0. Provided was {n_average}.")
+        self.n_average = n_average
 
-        interval = 0.2 * pq.ms  # time between spikes
-        self.runtime = interval * length
-        self.spike_times = np.arange(length) * interval + interval / 2
+        self.interval = 0.2 * pq.ms  # time between spikes
+        self.runtime = self.interval * length * n_average
+        self.spike_times = np.arange(length) * self.interval \
+            + self.interval / 2
 
         self.chain = self._setup()
 
@@ -65,8 +73,10 @@ class AttenuationExperiment(Base):
         # Inject inputs in one compartment after another
         pop_in = []
         for spike_time in self.spike_times:
-            spike_source = pynn.cells.SpikeSourceArray(
-                spike_times=[float(spike_time.rescale(pq.ms))])
+            spike_times = np.arange(
+                spike_time.rescale(pq.ms), self.runtime.rescale(pq.ms),
+                self.length * self.interval.rescale(pq.ms))
+            spike_source = pynn.cells.SpikeSourceArray(spike_times=spike_times)
             pop_in.append(pynn.Population(self.input_neurons, spike_source))
 
         for pop, compartment in zip(pop_in, chain.compartments):
@@ -99,11 +109,12 @@ class AttenuationExperiment(Base):
         for comp in self.chain.compartments[1:]:
             set_compartment_conductance(comp, params[1])
 
-    def record_membrane_traces(self) -> List[neo.IrregularlySampledSignal]:
+    def _record_raw_traces(self) -> List[neo.IrregularlySampledSignal]:
         '''
         Measure the membrane potential in one compartment after another.
 
         :return: Analog recordings of membrane potentials in each compartment.
+            The traces are not averaged over the different repetitions.
         '''
         results = []
         for n_comp, comp in enumerate(self.chain.compartments):
@@ -114,13 +125,25 @@ class AttenuationExperiment(Base):
             # Extract hight
             segments = comp.get_data(clear=True).segments
             sig = segments[-1].irregularlysampledsignals[0]
-            sig.annotate(compartment=n_comp, input_spikes=self.spike_times)
+            sig.annotate(compartment=n_comp, input_spikes=self.spike_times,
+                         n_average=self.n_average)
             results.append(sig)
 
             comp.record(None)
             pynn.reset()
 
         return results
+
+    def record_membrane_traces(self) -> List[neo.IrregularlySampledSignal]:
+        '''
+        Measure the membrane potential in one compartment after another.
+
+        :return: Analog recordings of membrane potentials in each compartment.
+        '''
+        if self.n_average > 1:
+            return [_average_traces(_split_traces(trace, self.n_average)) for
+                    trace in self._record_raw_traces()]
+        return self._record_raw_traces()
 
     def measure_response(self, parameters: Optional[np.ndarray] = None
                          ) -> np.ndarray:
@@ -168,6 +191,7 @@ class AttenuationExperiment(Base):
                        chip_id=get_license_and_chip(),
                        input_neurons=self.input_neurons,
                        input_weight=self.input_weight,
+                       n_average=self.n_average,
                        parameters=parameters,
                        spike_times=self.spike_times,
                        experiment='attenuation_bss')
@@ -257,6 +281,11 @@ def add_bss_psp_args(parser: argparse.ArgumentParser
                        help="Input weight for each neuron.",
                        type=int,
                        default=30)
+    group.add_argument("-n_average",
+                       help="Number of times the experiment is executed and "
+                            "the results are averaged over.",
+                       type=int,
+                       default=1)
     return group
 
 

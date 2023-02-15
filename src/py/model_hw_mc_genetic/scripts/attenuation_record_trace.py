@@ -16,6 +16,7 @@ def main(length: int,
          parameters: Optional[Tuple[float, float]] = None, *,
          input_neurons: int = 10,
          input_weight: int = 30,
+         n_average: int = 1,
          calibration: Optional[str] = None
          ) -> neo.Block():
     '''
@@ -35,7 +36,8 @@ def main(length: int,
     experiment = AttenuationExperiment(calibration,
                                        length=length,
                                        input_neurons=input_neurons,
-                                       input_weight=input_weight)
+                                       input_weight=input_weight,
+                                       n_average=n_average)
 
     return experiment.record_data(experiment.expand_parameters(parameters))
 
@@ -66,5 +68,6 @@ if __name__ == '__main__':
                   parameters=args.parameters,
                   input_neurons=args.input_neurons,
                   input_weight=args.input_weight,
+                  n_average=args.n_average,
                   calibration=args.calibration)
     neo.PickleIO('membrane_traces.pkl').write(result)

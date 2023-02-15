@@ -17,6 +17,7 @@ def main(length: int, repetitions: int,
          parameters: Optional[Tuple[float, float]] = None, *,
          input_neurons: int = 10,
          input_weight: int = 30,
+         n_average: int = 1,
          calibration: Optional[str] = None
          ) -> pd.DataFrame:
     '''
@@ -38,7 +39,8 @@ def main(length: int, repetitions: int,
     experiment = AttenuationExperiment(calibration,
                                        length=length,
                                        input_neurons=input_neurons,
-                                       input_weight=input_weight)
+                                       input_weight=input_weight,
+                                       n_average=n_average)
 
     params = experiment.expand_parameters(parameters)
     experiment.set_parameters(params)
@@ -49,6 +51,7 @@ def main(length: int, repetitions: int,
     result.attrs['calibration'] = str(calibration.resolve())
     result.attrs['input_neurons'] = input_neurons
     result.attrs['input_weight'] = input_weight
+    result.attrs['n_average'] = n_average
     result.attrs['experiment'] = 'attenuation_bss'
 
     return result
@@ -83,5 +86,7 @@ if __name__ == '__main__':
     data = main(args.length, args.n_repetitions, args.parameters,
                 input_neurons=args.input_neurons,
                 input_weight=args.input_weight,
-                calibration=args.calibration)
+                calibration=args.calibration,
+                n_average=args.n_average
+                )
     data.to_pickle('attenuation_variations.pkl')

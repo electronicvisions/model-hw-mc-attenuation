@@ -54,7 +54,8 @@ if __name__ == '__main__':
         calibration = Path(args.calibration)
     attenuation_experiment = AttenuationExperiment(
         calibration, length=args.length,
-        input_weight=args.input_weight, input_neurons=args.input_neurons)
+        input_weight=args.input_weight, input_neurons=args.input_neurons,
+        n_average=args.n_average)
 
     data = grid_search(attenuation_experiment, args.g_leak, args.g_icc)
 
@@ -62,6 +63,7 @@ if __name__ == '__main__':
     data.attrs['chip_id'] = get_license_and_chip()
     data.attrs['input_neurons'] = args.input_neurons
     data.attrs['input_weight'] = args.input_weight
+    data.attrs['n_average'] = args.n_average
     data.attrs['experiment'] = 'attenuation_bss'
 
     data.to_pickle('attenuation_grid_search.pkl')
