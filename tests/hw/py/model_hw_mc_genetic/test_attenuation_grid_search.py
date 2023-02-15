@@ -54,6 +54,7 @@ class TestGridSearch(unittest.TestCase):
         steps = 3
         data = grid_search(attenuation_experiment, g_leak=(0, 1022, steps),
                            g_icc=(0, 1022, steps))
+        data.attrs['experiment'] = 'attenuation_bss'
 
         self.assertEqual(steps**2, len(data))
         self.plotting_test(data, 'bss')
@@ -69,6 +70,7 @@ class TestGridSearch(unittest.TestCase):
         data = grid_search(attenuation_experiment,
                            g_leak=(g_leak_lim[0], g_leak_lim[1], steps),
                            g_icc=(g_icc_lim[0], g_icc_lim[1], steps))
+        data.attrs['experiment'] = 'attenuation_arbor'
 
         self.assertEqual(steps**2, len(data))
         self.plotting_test(data, 'arbor')

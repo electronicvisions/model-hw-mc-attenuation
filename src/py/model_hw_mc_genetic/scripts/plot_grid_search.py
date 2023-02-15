@@ -7,6 +7,7 @@ import pandas as pd
 
 import scipy.ndimage
 from model_hw_mc_genetic.attenuation import fit_length_constant
+from model_hw_mc_genetic.attenuation.helper import get_bounds
 
 
 def plot_parameter_space(ax: plt.Axes, data: pd.DataFrame):
@@ -53,12 +54,14 @@ def extract_observable(data: pd.DataFrame, observable: str,
     '''
     chain_length = data.attrs['length']
 
+    bounds = get_bounds(data)
+
     # function to extract length constants
     def calculate_length_constants(row: pd.Series) -> float:
         # Extract PSP amplitudes in first compartment
         amplitudes = row['amplitudes'].values.\
             reshape(chain_length, chain_length)[:, 0]
-        return fit_length_constant(amplitudes)
+        return fit_length_constant(amplitudes, bounds=bounds)
 
     # Filter for desired observable
     result = data.loc[:, 'parameters'].copy(deep=True)
