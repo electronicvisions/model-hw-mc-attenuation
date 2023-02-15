@@ -37,9 +37,18 @@ def extract_psp_heights(
     return np.asarray(heights)
 
 
-def fit_exponential(heights: np.ndarray) -> float:
+def fit_exponential(heights: np.ndarray, **kwargs) -> float:
     '''
     Fit an exponential decay to the PSP height in the given array.
+
+    The keyword arguments are passed to :func:`curve_fit`.
+
+    If the initial guess of the parameters (p0) are not passed as a keyword
+    argument, they are estimated from the given heights. This estimate
+    assumes that the offset of the exponential is zero.
+
+    Furthermore, the bounds (bounds) are set as broad as possible if not
+    supplied as a keyword argument.
 
     :param heights: PSP heights to which an exponential should be fitted.
     :return: All fit parameters of the exponential fit (tau, offset,
@@ -50,34 +59,29 @@ def fit_exponential(heights: np.ndarray) -> float:
     def fitfunc(location, tau, offset, scaling_factor):
         return scaling_factor * np.exp(- location / tau) + offset
 
-    # initial guess for fit parameters
-    guessed_tau = np.argmin(np.abs((heights - heights[-1])
-                                   - (heights[0] - heights[-1]) / np.e))
-    p_0 = {'tau': guessed_tau, 'offset': heights[-1],
-           'scaling_factor': heights[0] - heights[-1]}
-    bounds = {'tau': [0, np.inf],
-              'offset': [-np.inf, np.inf],
-              'scaling_factor': [0, np.inf]}
+    # assume zero offset, i.e. y = A * exp( -x / tau)
+    guessed_tau = 1 if heights[1] == 0 else 1 / np.log(heights[0] / heights[1])
 
-    popt = curve_fit(
-        fitfunc,
-        compartments,
-        heights,
-        p0=[p_0['tau'], p_0['offset'], p_0['scaling_factor']],
-        bounds=([bounds['tau'][0], bounds['offset'][0],
-                 bounds['scaling_factor'][0]],
-                [bounds['tau'][1], bounds['offset'][1],
-                 bounds['scaling_factor'][1]]))[0]
+    # order of variables in fit function:  tau, offset, scaling factor
+    default_kwargs = {}
+    default_kwargs['p0'] = [guessed_tau, 0, heights[0]]
+    default_kwargs['bounds'] = ([0, -np.inf, 0],
+                                [np.inf, np.inf, np.inf])
+    default_kwargs.update(kwargs)
+
+    popt = curve_fit(fitfunc, compartments, heights, **default_kwargs)[0]
 
     return popt
 
 
-def fit_length_constant(heights: np.ndarray) -> float:
+def fit_length_constant(heights: np.ndarray, **kwargs) -> float:
     '''
     Fit an exponential decay to the PSP height in the given array.
+
+    The keyword arguments are passed to :func:`fit_exponential`.
 
     :param heights: PSP heights to which an exponential should be fitted.
     :return: Length constant (exponential fit to PSP height as function of
         compartment)
     '''
-    return fit_exponential(heights)[0]
+    return fit_exponential(heights, **kwargs)[0]
