@@ -59,7 +59,7 @@ if __name__ == '__main__':
     data = grid_search(attenuation_experiment, args.g_leak, args.g_icc)
 
     data.attrs['calibration'] = str(calibration.resolve())
-    data.attrs['license'] = get_license_and_chip()
+    data.attrs['chip_id'] = get_license_and_chip()
     data.attrs['input_neurons'] = args.input_neurons
     data.attrs['input_weight'] = args.input_weight
     data.attrs['experiment'] = 'attenuation_bss'

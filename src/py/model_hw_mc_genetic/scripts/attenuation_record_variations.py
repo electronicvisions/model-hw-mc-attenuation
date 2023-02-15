@@ -44,7 +44,7 @@ def main(length: int, repetitions: int,
     experiment.set_parameters(params)
 
     result = record_variations(experiment, repetitions)
-    result.attrs['license'] = get_license_and_chip()
+    result.attrs['chip_id'] = get_license_and_chip()
     result.attrs['parameters'] = params
     result.attrs['calibration'] = str(calibration.resolve())
     result.attrs['input_neurons'] = input_neurons

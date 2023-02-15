@@ -165,7 +165,7 @@ class AttenuationExperiment(Base):
         block.annotate(calibration=str(self.calibration),
                        length=self.length,
                        date=str(datetime.now()),
-                       hicann=get_license_and_chip(),
+                       chip_id=get_license_and_chip(),
                        input_neurons=self.input_neurons,
                        input_weight=self.input_weight,
                        parameters=parameters,
