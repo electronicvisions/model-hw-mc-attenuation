@@ -130,7 +130,7 @@ def plot_2d_marginals(axes: np.ndarray,
                 ax.set_axis_off()
         artists.append(artists_row)
 
-    return np.array(artists)
+    return np.array(artists, dtype=object)
 
 
 def _set_prob_limits_1d_marginals(axes: np.ndarray):
