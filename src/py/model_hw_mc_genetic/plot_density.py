@@ -52,7 +52,7 @@ def plot_1d_density(ax: plt.Axes, values: np.ndarray,
 def get_xy_1d_hist(values: np.ndarray,
                    limits: Optional[np.ndarray] = None,
                    bins: Union[int, np.ndarray, str] = 100,
-                   density: bool = True) -> Tuple[np.ndarray, np.ndarray]:
+                   density: bool = False) -> Tuple[np.ndarray, np.ndarray]:
     '''
     Create data for a line plot which represents a histogram.
 
@@ -76,7 +76,7 @@ def get_xy_1d_hist(values: np.ndarray,
 def plot_1d_hist(ax: plt.Axes, values: np.ndarray,
                  limits: Optional[np.ndarray] = None,
                  bins: Union[int, np.ndarray, str] = 100,
-                 density: bool = True, **kwargs) -> plt.Line2D:
+                 density: bool = False, **kwargs) -> plt.Line2D:
     '''
     Plot data in a histogram.
 
