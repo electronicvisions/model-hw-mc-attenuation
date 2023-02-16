@@ -18,7 +18,7 @@ withCcache() {
 // Archive plots from tests
 stage(name: "Archive Test Plots") {
 	runOnSlave(label: "frontend") {
-		archiveArtifacts(artifacts: 'model-hw-mc-genetic/test_plots/*',
+		archiveArtifacts(artifacts: 'model-hw-mc-genetic/test_results/*',
 		                 allowEmptyArchive: true)
 	}
 }

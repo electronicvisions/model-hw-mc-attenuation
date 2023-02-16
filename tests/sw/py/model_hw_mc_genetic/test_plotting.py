@@ -43,7 +43,7 @@ class TestPairplot(unittest.TestCase):
 
         artists = pairplot(axs, data, labels=labels)
 
-        results_folder = Path('test_plots')
+        results_folder = Path('test_results')
         results_folder.mkdir(exist_ok=True)
         fig.savefig(results_folder.joinpath('pairplot.png'))
 
@@ -91,7 +91,7 @@ class Generic1dTest(unittest.TestCase):
             plotting_func(self.ax, self.samples)
             plotting_func(self.ax, self.samples, self.limits)
 
-            results_folder = Path('test_plots')
+            results_folder = Path('test_results')
             results_folder.mkdir(exist_ok=True)
             self.fig.savefig(results_folder.joinpath(
                 f'{plotting_func.__name__}.png'))
@@ -155,7 +155,7 @@ class Generic2dTest(unittest.TestCase):
             plotting_func(self.ax, self.x_values, self.y_values)
             plotting_func(self.ax, self.x_values, self.y_values, self.limits)
 
-            results_folder = Path('test_plots')
+            results_folder = Path('test_results')
             results_folder.mkdir(exist_ok=True)
             self.fig.savefig(results_folder.joinpath(
                 f'{plotting_func.__name__}.png'))

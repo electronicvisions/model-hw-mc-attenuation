@@ -43,7 +43,7 @@ class TestGridSearch(unittest.TestCase):
         plot_parameter_space(axs[2], filtered_data)
         axs[2].set_title('Deviation Heights')
 
-        results_folder = Path('test_plots')
+        results_folder = Path('test_results')
         results_folder.mkdir(exist_ok=True)
         fig.savefig(results_folder.joinpath(f'grid_search_{suffix}.png'))
 
