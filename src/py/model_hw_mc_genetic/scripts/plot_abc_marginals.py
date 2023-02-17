@@ -6,7 +6,7 @@ import numpy as np
 
 from model_hw_mc_genetic.plot_density import plot_1d_hist
 from model_hw_mc_genetic.helper import AttributeNotIdentical, \
-    get_identical_attr
+    get_identical_attr, get_parameter_limits
 
 
 def plot_parameter(axis,
@@ -27,18 +27,8 @@ def plot_parameter(axis,
     '''
     labels = np.arange(len(posterior_dfs)) if labels is None else labels
 
-    # get limits of different parameters
-    try:
-        limits = get_identical_attr(posterior_dfs, 'limits')
-        n_param = np.where(
-            posterior_dfs[0]['parameters'].columns == parameter_name)[0][0]
-        limits = limits[n_param]
-    except AttributeNotIdentical:
-        lower_limits = [posterior_df['parameters'][parameter_name].min() for
-                        posterior_df in posterior_dfs]
-        upper_limits = [posterior_df['parameters'][parameter_name].max() for
-                        posterior_df in posterior_dfs]
-        limits = np.array([lower_limits.min(), upper_limits.max()])
+    limits = get_parameter_limits([df['parameters'] for df in posterior_dfs],
+                                  parameter_name)
 
     # plot different distributions
     for n_pos, (samples, label) in enumerate(zip(posterior_dfs, labels)):

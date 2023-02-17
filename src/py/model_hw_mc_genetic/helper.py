@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 import numpy as np
 import pandas as pd
 from pyNN.common import BasePopulation
@@ -93,3 +93,32 @@ def concat_dfs(*dfs: pd.DataFrame) -> pd.DataFrame:
     merged_df.attrs.update(attrs)
 
     return merged_df
+
+
+def get_parameter_limits(dfs: List[pd.DataFrame],
+                         parameter_name: Optional[str] = None) -> np.ndarray:
+    '''
+    Extract the limits of the given parameters.
+
+    If an attribute 'limits' exists in all DataFrames and is identical, use
+    these limits. Else extract the minimum and maximum values for each
+    parameter.
+
+    :param df: DataFrame with different parameters in different columns.
+    :param parameter_name: Only extract the limits for the parameter with
+        the given name.
+    :returns: Limits of all parameters or the given parameter.
+
+    '''
+    try:
+        limits = get_identical_attr(dfs, 'limits')
+    except AttributeNotIdentical:
+        lower_limits = np.min([df.min(0) for df in dfs], axis=0)
+        upper_limits = np.max([df.max(0) for df in dfs], axis=0)
+        limits = np.array([lower_limits, upper_limits]).T
+
+    if parameter_name is None:
+        return limits
+
+    n_param = np.where(dfs[0].columns == parameter_name)[0][0]
+    return limits[n_param]
