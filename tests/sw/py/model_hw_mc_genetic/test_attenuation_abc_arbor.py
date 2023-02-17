@@ -19,7 +19,8 @@ from model_hw_mc_genetic.scripts.plot_attenuation_pairplot_and_trace import \
     plot_pairplot_and_trace, plot_trace_attenuation
 from model_hw_mc_genetic.scripts.attenuation_abc_add_observables import \
     add_observables
-from model_hw_mc_genetic.scripts.plot_abc_marginals import plot_marginals
+from model_hw_mc_genetic.scripts.plot_abc_marginals import main as \
+    plot_abc_marginals
 from model_hw_mc_genetic.scripts.plot_abc_marginals_obs import main as \
     plot_marginals_obs
 
@@ -161,7 +162,7 @@ class TestEvaluation(unittest.TestCase):
             self.results_folder.joinpath('test_pairplot_and_traces.png'))
 
     def test_01_plot_marginals(self):
-        figure = plot_marginals([self.posterior_samples])
+        figure = plot_abc_marginals([self.posterior_samples])
         figure.savefig(self.results_folder.joinpath('test_abc_marginals.png'))
 
     def test_02_plot_marginals_obs(self):
