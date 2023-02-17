@@ -8,8 +8,8 @@ from typing import Callable, Set
 import matplotlib.pyplot as plt
 import numpy as np
 
-from model_hw_mc_genetic.plot_pairplot import pairplot, create_axes_grid
-from model_hw_mc_genetic import plot_density
+from model_hw_mc_genetic.plotting.pairplot import pairplot, create_axes_grid
+from model_hw_mc_genetic.plotting import density
 
 
 class TestPairplot(unittest.TestCase):
@@ -101,7 +101,7 @@ class Generic1dTest(unittest.TestCase):
     @staticmethod
     def get_plotting_funcs() -> Set[Callable]:
         functions = set()
-        for name, func in inspect.getmembers(plot_density, inspect.isfunction):
+        for name, func in inspect.getmembers(density, inspect.isfunction):
             if name.startswith('plot_1d'):
                 functions.add(func)
         return functions
@@ -165,7 +165,7 @@ class Generic2dTest(unittest.TestCase):
     @staticmethod
     def get_plotting_funcs() -> Set[Callable]:
         functions = set()
-        for name, func in inspect.getmembers(plot_density, inspect.isfunction):
+        for name, func in inspect.getmembers(density, inspect.isfunction):
             if name.startswith('plot_2d'):
                 functions.add(func)
         return functions

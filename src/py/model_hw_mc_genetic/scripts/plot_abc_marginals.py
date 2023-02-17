@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-from model_hw_mc_genetic.plot_density import plot_1d_hist
+from model_hw_mc_genetic.plotting.density import plot_1d_hist
 from model_hw_mc_genetic.helper import AttributeNotIdentical, \
     get_identical_attr, get_parameter_limits
 

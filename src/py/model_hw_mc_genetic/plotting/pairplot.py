@@ -2,7 +2,7 @@ from typing import Optional, List, Callable, Any, Dict
 import matplotlib.pyplot as plt
 import numpy as np
 
-from model_hw_mc_genetic.plot_density import plot_1d_hist, plot_2d_scatter
+from model_hw_mc_genetic.plotting.density import plot_1d_hist, plot_2d_scatter
 
 
 def create_axes_grid(base_gs: plt.SubplotSpec, n_axes: int,

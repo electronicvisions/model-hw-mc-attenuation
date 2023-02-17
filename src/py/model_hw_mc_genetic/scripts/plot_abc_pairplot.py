@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-from model_hw_mc_genetic.plot_pairplot import pairplot, create_axes_grid
-from model_hw_mc_genetic.plot_density import plot_2d_scatter
+from model_hw_mc_genetic.plotting.pairplot import pairplot, create_axes_grid
+from model_hw_mc_genetic.plotting.density import plot_2d_scatter
 from model_hw_mc_genetic.helper import AttributeNotIdentical, \
     get_identical_attr
 

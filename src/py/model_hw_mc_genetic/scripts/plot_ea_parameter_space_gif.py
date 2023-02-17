@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 import pandas as pd
 
-from model_hw_mc_genetic.plot_pairplot import pairplot, create_axes_grid
-from model_hw_mc_genetic.plot_density import get_xy_1d_hist, \
+from model_hw_mc_genetic.plotting.pairplot import pairplot, create_axes_grid
+from model_hw_mc_genetic.plotting.density import get_xy_1d_hist, \
     plot_1d_empty, plot_2d_empty
 
 

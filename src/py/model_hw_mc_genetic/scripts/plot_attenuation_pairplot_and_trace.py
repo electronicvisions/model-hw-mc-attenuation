@@ -8,9 +8,9 @@ import neo
 import quantities as pq
 import numpy as np
 
-from model_hw_mc_genetic.plot_density import plot_2d_enumerate, \
+from model_hw_mc_genetic.plotting.density import plot_2d_enumerate, \
     plot_1d_empty, plot_2d_hist
-from model_hw_mc_genetic.plot_pairplot import pairplot, create_axes_grid
+from model_hw_mc_genetic.plotting.pairplot import pairplot, create_axes_grid
 
 from model_hw_mc_genetic.attenuation.base import Base as AttenuationExperiment
 from model_hw_mc_genetic.attenuation.helper import get_experiment
