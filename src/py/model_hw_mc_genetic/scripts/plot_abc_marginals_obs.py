@@ -94,5 +94,6 @@ if __name__ == '__main__':
     for posterior_file in args.posterior_files:
         posterior_samples.append(pd.read_pickle(posterior_file))
 
-    figure = main(posterior_samples, args.observation, args.labels)
-    figure.savefig('observable_distribution.svg')
+    figure = main(posterior_samples, Observation[args.observation.upper()],
+                  args.labels)
+    figure.savefig('abc_marginals_obs.svg')

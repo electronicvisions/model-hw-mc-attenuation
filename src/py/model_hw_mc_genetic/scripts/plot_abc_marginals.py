@@ -157,4 +157,4 @@ if __name__ == '__main__':
         [pd.read_pickle(pos_file) for pos_file in args.posterior_files],
         labels=args.labels,
         plot_combined_posterior=args.plot_combined_posterior)
-    figure.savefig('posterior_1d_densities.svg')
+    figure.savefig('abc_marginals.svg')
