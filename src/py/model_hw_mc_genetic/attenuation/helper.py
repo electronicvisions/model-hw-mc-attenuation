@@ -7,7 +7,7 @@ space.
 from itertools import product
 from datetime import datetime
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, Optional
 
 import pandas as pd
 import numpy as np
@@ -116,16 +116,26 @@ def get_bounds(data_frame: pd.DataFrame) -> AttenuationExperiment:
 
 
 def extract_observation(amplitudes: pd.DataFrame,
-                        observation: Observation) -> np.ndarray:
+                        observation: Observation,
+                        target_amplitudes: Optional[np.ndarray] = None
+                        ) -> np.ndarray:
     '''
     Extract the given observation from the given amplitudes.
 
     :param amplitudes: DataFrame with PSP amplitudes.
     :param observation: Type of observation to extract.
+    :param atrget_amplitudes: One-dimensional array with atrget amplitudes.
     :returns: The given observation for each row in the DataFrame.
     '''
     if observation == Observation.AMPLITUDES:
         return amplitudes.values
+    if observation == Observation.AMPLITUDE_00:
+        return amplitudes.values[:, 0]
+    if observation == Observation.AMPLITUDES_DISTANCE:
+        if target_amplitudes is None:
+            raise ValueError('You need to supply `target_amplitudes` for the '
+                             f'observation {observation.name}.')
+        return np.linalg.norm(amplitudes.values - target_amplitudes, axis=1)
 
     length = np.sqrt(amplitudes.shape[1]).astype(int)
     if observation == Observation.AMPLITUDES_FIRST:

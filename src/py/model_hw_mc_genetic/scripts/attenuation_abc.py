@@ -203,7 +203,9 @@ if __name__ == '__main__':
                              "the provided target",
                         type=str,
                         default=Observation.LENGTH_CONSTANT.name.lower(),
-                        choices=[obs.name.lower() for obs in Observation])
+                        choices=[Observation.LENGTH_CONSTANT.name.lower(),
+                                 Observation.AMPLITUDES.name.lower(),
+                                 Observation.AMPLITUDES_FIRST.name.lower()])
 
     parser.add_argument("-algorithm",
                         help="Algorithm used to approximate a posterior.",

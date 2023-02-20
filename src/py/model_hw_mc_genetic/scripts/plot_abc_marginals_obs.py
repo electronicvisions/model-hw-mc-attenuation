@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import numbers
-from typing import List, Optional
+from typing import List, Optional, Union, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,6 +10,28 @@ from model_hw_mc_genetic.plotting.density import plot_1d_density
 from model_hw_mc_genetic.attenuation import Observation
 from model_hw_mc_genetic.attenuation.helper import extract_observation
 from model_hw_mc_genetic.helper import get_identical_attr
+
+
+def _create_figure(observation_size: int, chain_length: int
+                   ) -> Tuple[plt.Figure, Union[plt.Axes, List[plt.Axes]]]:
+    '''
+    Create a figure and axes depending on the size of the observation.
+
+    :param observation_size: Size of the observation.
+    :param chain_length: Length of the compartmet chain.
+    :returns: Tuple of created figure and created axis/axes.
+    '''
+    # Create figure
+    if observation_size == 1:
+        n_columns = n_rows = 1
+    else:
+        n_columns = chain_length
+        n_rows = observation_size // n_columns
+
+    return plt.subplots(n_rows, n_columns,
+                        figsize=np.array([n_columns, n_rows]) * 4,
+                        sharey=True, sharex=True, tight_layout=True,
+                        squeeze=False)
 
 
 def main(posterior_dfs: List[pd.DataFrame],
@@ -28,30 +50,22 @@ def main(posterior_dfs: List[pd.DataFrame],
     if labels is None:
         labels = np.arange(len(posterior_dfs))
 
-    targets = extract_observation(
-        pd.read_pickle(get_identical_attr(posterior_dfs, 'target_file')),
-        observation).mean(0)
+    target_df = pd.read_pickle(get_identical_attr(posterior_dfs,
+                                                  'target_file'))
+    target_amplitudes = target_df.values.mean(0)
+    targets = extract_observation(target_df, observation, target_amplitudes
+                                  ).mean(0)
     if isinstance(targets, numbers.Number):
         targets = np.array([targets])
 
-    # Create figure
-    if observation == Observation.LENGTH_CONSTANT:
-        n_columns = n_rows = 1
-    else:
-        n_columns = posterior_dfs[0].attrs['length']
-        n_rows = len(targets) // n_columns
-
-    fig, axs = plt.subplots(n_rows, n_columns,
-                            figsize=np.array([n_columns, n_rows]) * 4,
-                            sharey=True, sharex=True, tight_layout=True,
-                            squeeze=False)
+    fig, axs = _create_figure(targets.size, posterior_dfs[0].attrs['length'])
 
     # Plot distribution of observations
     for label, posterior_df in zip(labels, posterior_dfs):
         # Extract samples with observations
         amplitudes = posterior_df['amplitudes']
         amplitudes = amplitudes[~np.any(np.isnan(amplitudes), axis=1)]
-        data = extract_observation(amplitudes, observation)
+        data = extract_observation(amplitudes, observation, target_amplitudes)
 
         if data.ndim == 1:
             data = data[:, np.newaxis]
