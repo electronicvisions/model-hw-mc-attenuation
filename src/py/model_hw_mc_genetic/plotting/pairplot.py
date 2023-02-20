@@ -41,7 +41,7 @@ def swap_xy_data(ax):
     Swap the x- and y-data of a line plot in the givena xis.
 
     The data of the last line plot in the axes is swapped. The
-    x- and y-limits are recalulated.
+    x- and y-limits are recalculated.
 
     :param ax: Axis for which the data is swapped.
     '''
@@ -94,8 +94,8 @@ def plot_2d_marginals(axes: np.ndarray,
     '''
     Plot pairwise 2d marginals of the given parameters.
 
-    On the different rows the parameters [0:N-1] are displayed, in the
-    different columns the parameters [1:N]. The distributions illustrate
+    On the different rows the parameters [N, 0:N-2] are displayed, in the
+    different columns the parameters [0:N-1]. The distributions illustrate
     the 2d marginals of the given samples. Only in the upper triangular
     of the grid, data is plotted.
 
@@ -111,8 +111,8 @@ def plot_2d_marginals(axes: np.ndarray,
     for row in range(n_parameters - 1):
         artists_row = []
         for column in range(n_parameters - 1):
-            column_param = column + 1
-            row_param = row
+            column_param = column
+            row_param = np.roll(np.arange(n_parameters), 1)[row]
             ax = axes[row, column]
             if row <= column:
                 restricted_limits = None
@@ -177,8 +177,8 @@ def _mark_targets(axes: np.ndarray, targets: List[float], **kwargs):
             if row > column:
                 # no pairplots in lower left triangular space
                 continue
-            column_param = column + 1
-            row_param = row
+            column_param = column
+            row_param = np.roll(np.arange(len(targets)), 1)[row]
 
             ax.axvline(targets[column_param], **kwargs)
             ax.axhline(targets[row_param], **kwargs)
@@ -264,15 +264,17 @@ def pairplot(axes: np.ndarray,
     artists = np.zeros((n_parameters, n_parameters), dtype=object)
 
     # 1d marginals at the top
-    artists[0, :-1] = plot_1d_marginals(axes[0, :-1], samples[:, 1:],
+    artists[0, :-1] = plot_1d_marginals(axes[0, :-1],
+                                        samples[:, :-1],
                                         plot_func=plot_1d_dist,
-                                        limits=limits[1:],
+                                        limits=limits[:-1],
                                         **kwargs_1d)
 
     # 1d marginals at the right
-    artists[1:, -1] = plot_1d_marginals(axes[1:, -1], samples[:, :-1],
+    artists[1:, -1] = plot_1d_marginals(axes[1:, -1],
+                                        np.roll(samples, 1)[:, :-1],
                                         plot_func=plot_1d_dist,
-                                        limits=limits[:-1],
+                                        limits=np.roll(limits, 1, axis=0)[:-1],
                                         **kwargs_1d)
 
     for ax in axes[1:, -1]:
@@ -287,10 +289,10 @@ def pairplot(axes: np.ndarray,
     # add labels to pariplots
     if labels is not None:
         for n_diagonal, ax in enumerate(axes[1:, :-1].diagonal()):
-            ax.set_xlabel(labels[n_diagonal + 1])
-            ax.set_ylabel(labels[n_diagonal])
+            ax.set_xlabel(labels[n_diagonal])
+            ax.set_ylabel(np.roll(labels, 1)[n_diagonal])
 
-    # x/y-limits of pairplost is trivally shared between columns/rows.
+    # x/y-limits of pairplot is trivally shared between columns/rows.
     # share these limits with 1d marginals
     for n_axs, ax in enumerate(axes[0, :-1]):
         ax.set_xlim(axes[1, n_axs].get_xlim())

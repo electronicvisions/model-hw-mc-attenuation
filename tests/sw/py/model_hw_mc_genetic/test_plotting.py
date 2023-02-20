@@ -14,7 +14,7 @@ from model_hw_mc_genetic.plotting import density
 
 class TestPairplot(unittest.TestCase):
     def test_execution(self):
-        n_params = 2
+        n_params = 3
         n_samples = 50
 
         fig = plt.figure(figsize=(n_params * 2, n_params * 2),
@@ -26,7 +26,9 @@ class TestPairplot(unittest.TestCase):
         # Generate random data
         # choose values larger away from the interval [0, 1] to see effect
         # of empty axes.
-        target_params = np.random.randint(10, 100, size=n_params)
+        target_params = np.random.randint(10, size=n_params)
+        target_params[1] += 1000
+        target_params[2] += 10000
         data = np.random.randint(-50, 50, size=(n_samples, n_params)) \
             + target_params
         labels = [f'Param {n_param}' for n_param in range(n_params)]
