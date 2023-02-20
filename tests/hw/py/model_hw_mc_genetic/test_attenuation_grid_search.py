@@ -14,9 +14,10 @@ from model_hw_mc_genetic.attenuation.bss import AttenuationExperiment as \
 from model_hw_mc_genetic.attenuation.arbor import \
     AttenuationExperiment as AttenuationArbor
 
+from model_hw_mc_genetic.attenuation.helper import Observation
 from model_hw_mc_genetic.attenuation.helper import grid_search
-from model_hw_mc_genetic.scripts.plot_grid_search import \
-    extract_observable, plot_parameter_space
+from model_hw_mc_genetic.scripts.plot_grid_search import main as \
+    plot_grid_search
 
 
 class TestGridSearch(unittest.TestCase):
@@ -30,17 +31,14 @@ class TestGridSearch(unittest.TestCase):
         '''
 
         fig, axs = plt.subplots(3, tight_layout=True, figsize=(3, 7))
-        filtered_data = extract_observable(data, 'length_constant')
-        plot_parameter_space(axs[0], filtered_data)
+        plot_grid_search(axs[0], data, Observation.LENGTH_CONSTANT)
         axs[0].set_title('Length Constant')
 
-        filtered_data = extract_observable(data, 'amplitude')
-        plot_parameter_space(axs[1], filtered_data)
-        axs[1].set_title('Height')
+        plot_grid_search(axs[1], data, Observation.AMPLITUDE_00)
+        axs[1].set_title('AMPLITUDE')
 
-        filtered_data = extract_observable(data, 'deviation_amplitudes',
-                                           target=data['amplitudes'])
-        plot_parameter_space(axs[2], filtered_data)
+        plot_grid_search(axs[2], data, Observation.AMPLITUDES_DISTANCE,
+                         target=data['amplitudes'].mean(0))
         axs[2].set_title('Deviation Heights')
 
         results_folder = Path('test_results')
