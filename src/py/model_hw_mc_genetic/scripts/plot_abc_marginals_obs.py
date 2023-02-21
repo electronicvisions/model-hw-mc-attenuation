@@ -22,11 +22,12 @@ def _create_figure(observation_size: int, chain_length: int
     :returns: Tuple of created figure and created axis/axes.
     '''
     # Create figure
-    if observation_size == 1:
-        n_columns = n_rows = 1
-    else:
+    if observation_size % chain_length == 0:
         n_columns = chain_length
         n_rows = observation_size // n_columns
+    else:
+        n_rows = 1
+        n_columns = observation_size
 
     return plt.subplots(n_rows, n_columns,
                         figsize=np.array([n_columns, n_rows]) * 4,

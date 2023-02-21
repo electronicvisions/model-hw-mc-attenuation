@@ -13,6 +13,9 @@ class Observation(Enum):
     LENGTH_CONSTANT = auto()
     AMPLITUDE_00 = auto()  # response in first comp. to input to first comp.
     AMPLITUDES_DISTANCE = auto()  # Euclidean distance between two amplitudes
+    # length constant of exponential fit to amplitudes_first + amplitude in
+    # first compartment as a result from an input to the first compartment
+    LENGTH_AND_AMPLITUDE = auto()
 
 
 def extract_psp_heights(

@@ -141,13 +141,19 @@ def extract_observation(amplitudes: pd.DataFrame,
     length = np.sqrt(amplitudes.shape[1]).astype(int)
     if observation == Observation.AMPLITUDES_FIRST:
         return amplitudes.values.reshape(-1, length, length)[:, :, 0]
+
+    def get_length_constant(row: pd.Series) -> float:
+        return fit_length_constant(
+            row.values.reshape(length, length)[:, 0], bounds=bounds)
+
     if observation == Observation.LENGTH_CONSTANT:
         bounds = get_bounds(amplitudes)
-
-        def get_length_constant(row: pd.Series) -> float:
-            return fit_length_constant(
-                row.values.reshape(length, length)[:, 0], bounds=bounds)
         return amplitudes.apply(get_length_constant, axis=1).values
+    if observation == Observation.LENGTH_AND_AMPLITUDE:
+        bounds = get_bounds(amplitudes)
+        return np.array(
+            [amplitudes.apply(get_length_constant, axis=1).values,
+             amplitudes.values.reshape(-1, length, length)[:, 0, 0]]).T
 
     raise ValueError(f'The observation "{observation}" is not supported.')
 
@@ -174,7 +180,8 @@ def get_experiment(target: pd.DataFrame) -> AttenuationExperiment:
         return AttenuationBSS(Path(attrs['calibration']),
                               length=attrs['length'],
                               input_neurons=attrs['input_neurons'],
-                              input_weight=attrs['input_weight'])
+                              input_weight=attrs['input_weight'],
+                              n_average=attrs['n_average'])
 
     if attrs['experiment'] == 'attenuation_arbor':
         from model_hw_mc_genetic.attenuation.arbor import \
