@@ -1,5 +1,5 @@
 from enum import Enum, auto
-from typing import List
+from typing import List, Union
 import numpy as np
 import neo
 from scipy.optimize import curve_fit
@@ -47,6 +47,23 @@ def extract_psp_heights(
     return np.asarray(heights)
 
 
+def exponential_decay(location: Union[float, np.ndarray],
+                      tau: Union[float, np.ndarray],
+                      offset: Union[float, np.ndarray],
+                      scaling_factor: Union[float, np.ndarray]
+                      ) -> Union[float, np.ndarray]:
+    '''
+    Calculate an expoenential decay.
+
+    :param location: Free variable.
+    :param tau: Decay constant.
+    :param offset: Constant y offset.
+    :param scaling factor: Amplitude of the decay.
+    :returns: scaling_factor * exp( -location / tau ) + offset.
+    '''
+    return scaling_factor * np.exp(- location / tau) + offset
+
+
 def fit_exponential(heights: np.ndarray, **kwargs) -> float:
     '''
     Fit an exponential decay to the PSP height in the given array.
@@ -66,9 +83,6 @@ def fit_exponential(heights: np.ndarray, **kwargs) -> float:
     '''
     compartments = np.arange(len(heights))
 
-    def fitfunc(location, tau, offset, scaling_factor):
-        return scaling_factor * np.exp(- location / tau) + offset
-
     # assume zero offset, i.e. y = A * exp( -x / tau)
     guessed_tau = 1 if heights[1] == 0 else 1 / np.log(heights[0] / heights[1])
 
@@ -79,7 +93,8 @@ def fit_exponential(heights: np.ndarray, **kwargs) -> float:
                                 [np.inf, np.inf, np.inf])
     default_kwargs.update(kwargs)
 
-    popt = curve_fit(fitfunc, compartments, heights, **default_kwargs)[0]
+    popt = curve_fit(exponential_decay, compartments, heights,
+                     **default_kwargs)[0]
 
     return popt
 
