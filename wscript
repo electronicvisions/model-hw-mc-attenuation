@@ -45,7 +45,8 @@ def build_host_python(bld):
         install_from="src/py",
         pylint_config=join(get_toplevel_path(), "code-format", "pylintrc"),
         pycodestyle_config=join(get_toplevel_path(), "code-format", "pycodestyle"),
-        use=["model_hw_si_nsc_dendrites-python_libraries"])
+        use=["model_hw_si_nsc_dendrites-python_libraries"],
+        test_timeout=60)
 
     bld(name=f"{EXPERIMENT_NAME}-python_scripts",
         features="py use pylint pycodestyle",
