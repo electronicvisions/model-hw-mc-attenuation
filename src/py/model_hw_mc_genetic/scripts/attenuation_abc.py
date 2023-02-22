@@ -21,7 +21,7 @@ from model_hw_mc_genetic.attenuation.helper import extract_observation, \
 
 def get_evaluation_function(experiment: AttenuationExperiment,
                             observation: Observation,
-                            bounds: Optional[Tuple]) -> Callable:
+                            bounds: Optional[Tuple] = None) -> Callable:
     '''
     Define a function which extract the given observation from the given
     experiment.

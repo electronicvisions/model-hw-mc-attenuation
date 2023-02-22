@@ -90,7 +90,7 @@ def perform_mcabc(
     simulator: Callable,
     target: np.ndarray,
     eps: float,
-    simulations: Optional[int] = 10000,
+    simulations: int = 10000,
 ) -> np.ndarray:
     '''
     Perform Monte-Carlo ABC.

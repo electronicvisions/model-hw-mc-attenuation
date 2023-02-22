@@ -396,9 +396,8 @@ class AttenuationExperiment(Base):
 
         return np.array([leak_cond, icc_cond]).repeat(self.length, axis=0)[:-1]
 
-    def time_constants_to_conductance(self,
-                                      time_constants: Optional[np.ndarray]
-                                      ) -> np.ndarray:
+    def time_constants_to_conductance(
+            self, time_constants: Optional[np.ndarray] = None) -> np.ndarray:
         '''
         Convert membrane time constant and inter-compartment time constant in
         conductances.

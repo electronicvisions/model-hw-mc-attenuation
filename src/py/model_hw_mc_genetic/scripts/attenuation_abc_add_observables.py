@@ -9,7 +9,7 @@ from model_hw_mc_genetic.attenuation.helper import get_experiment
 
 
 def add_observables(posterior_samples: pd.DataFrame,
-                    max_simulations: Optional[int]) -> pd.DataFrame:
+                    max_simulations: Optional[int] = None) -> pd.DataFrame:
     '''
     Perform an attenuation experiment with parameters of the posterior samples.
 

@@ -56,7 +56,8 @@ class Base(ABC):
             self.set_parameters_individual(parameters)
 
     @abstractmethod
-    def measure_response(self, parameters: Optional[np.ndarray]) -> np.ndarray:
+    def measure_response(self, parameters: Optional[np.ndarray] = None
+                         ) -> np.ndarray:
         '''
         Measure the PSP heights or the deflection due to a constant current.
 
@@ -92,7 +93,7 @@ class Base(ABC):
         '''
         return self.default_limits.mean(1)
 
-    def expand_parameters(self, parameters: Optional[np.ndarray]
+    def expand_parameters(self, parameters: Optional[np.ndarray] = None
                           ) -> np.ndarray:
         '''
         Expand the given parameters to individual parameters or return default

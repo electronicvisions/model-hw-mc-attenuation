@@ -14,9 +14,9 @@ from model_hw_mc_genetic.attenuation.bss import AttenuationExperiment, \
 
 def main(length: int,
          parameters: Optional[Tuple[float, float]] = None, *,
-         input_neurons: Optional[int] = 10,
-         input_weight: Optional[int] = 30,
-         calibration: Optional[str] = None
+         input_neurons: int = 10,
+         input_weight: int = 30,
+         calibration: str = None
          ) -> neo.Block():
     '''
     Perform an attenuation experiment on BSS-2 and record the membrane traces.

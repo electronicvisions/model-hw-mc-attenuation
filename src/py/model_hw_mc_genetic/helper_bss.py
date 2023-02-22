@@ -44,7 +44,8 @@ def extract_neuron_configs(config_dumper: sta.DumperDone
     return neuron_configs
 
 
-def get_calibration_dumper(path_to_calib: Optional[Path]) -> sta.DumperDone:
+def get_calibration_dumper(path_to_calib: Optional[Path] = None
+                           ) -> sta.DumperDone:
     '''
     Load the calibration in a dumper.
 
