@@ -16,7 +16,7 @@ def main(length: int,
          parameters: Optional[Tuple[float, float]] = None, *,
          input_neurons: int = 10,
          input_weight: int = 30,
-         calibration: str = None
+         calibration: Optional[str] = None
          ) -> neo.Block():
     '''
     Perform an attenuation experiment on BSS-2 and record the membrane traces.

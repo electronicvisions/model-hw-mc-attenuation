@@ -17,7 +17,7 @@ def main(length: int, repetitions: int,
          parameters: Optional[Tuple[float, float]] = None, *,
          input_neurons: int = 10,
          input_weight: int = 30,
-         calibration: str = None
+         calibration: Optional[str] = None
          ) -> pd.DataFrame:
     '''
     Repeat the same attenuation experiment several times on BSS-2 and log the
