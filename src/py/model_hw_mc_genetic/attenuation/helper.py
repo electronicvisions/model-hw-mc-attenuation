@@ -84,6 +84,10 @@ def record_variations(experiment: AttenuationExperiment,
     return result
 
 
+# Avoid BSS/arbor specific imports at the top-levl such that they can be
+# executed individually without installing the dependencies for the other
+# experiment.
+# pylint: disable=import-outside-toplevel
 def get_bounds(data_frame: pd.DataFrame) -> AttenuationExperiment:
     '''
     Get the bounds for an exponential fit to the PSP amplitudes.
@@ -98,13 +102,8 @@ def get_bounds(data_frame: pd.DataFrame) -> AttenuationExperiment:
     '''
     attrs = data_frame.attrs
     if attrs['experiment'] == 'attenuation_bss':
-        # - tau: The typical length constants are in the range of 1-8
-        # - offset: We subtract the leak potential before fitting. The noise on
-        #   the measured potentials has a standard deviation of around 3 LSB
-        # - scaling factor: Restrict to the 10-bit range of the MADC
-        bounds = ([0, -10, 0],
-                  [20, 10, 1022])
-        return bounds
+        from model_hw_mc_genetic.attenuation.bss import integration_bounds
+        return integration_bounds
     if attrs['experiment'] == 'attenuation_arbor':
         offset = attrs['noise'] * 3 if 'noise' in attrs else 1e-5
         # bounds for tau, offset, scaling factor

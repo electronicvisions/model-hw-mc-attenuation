@@ -213,3 +213,12 @@ def add_bss_psp_args(parser: argparse.ArgumentParser
                        type=int,
                        default=30)
     return group
+
+
+# Bounds for the exponential fit for amplitudes recorded on BSS-2
+# - tau: The typical length constants are in the range of 1-8
+# - offset: We subtract the leak potential before fitting. The noise on
+#   the measured potentials has a standard deviation of around 3 LSB
+# - scaling factor: Restrict to the 10-bit range of the MADC
+integration_bounds = ([0, -10, 0],
+                      [20, 10, 1022])
