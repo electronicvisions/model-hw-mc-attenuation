@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
+from model_hw_mc_genetic.attenuation.helper import extract_original_parameters
 from model_hw_mc_genetic.plotting.marginals import plot_marginals
 
 
@@ -29,7 +30,15 @@ def main(posterior_dfs: List[pd.DataFrame],
                             figsize=np.array([n_columns, 2]) * 4,
                             sharey='row', tight_layout=True)
 
-    plot_marginals(axs.flatten()[:-1], posterior_dfs, labels)
+    try:
+        original_parameters = extract_original_parameters(posterior_dfs)
+    except RuntimeError:
+        original_parameters = None
+
+    plot_marginals(axs.flatten()[:-1], posterior_dfs,
+                   original_parameters=original_parameters,
+                   labels=labels)
+
     axs.flatten()[(axs.size - 1) // 2].legend()
 
     return fig

@@ -7,11 +7,13 @@ space.
 from itertools import product
 from datetime import datetime
 from pathlib import Path
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Sequence
 
 import pandas as pd
 import numpy as np
 
+from model_hw_mc_genetic.helper import AttributeNotIdentical, \
+    get_identical_attr
 from model_hw_mc_genetic.attenuation import Observation, fit_length_constant
 from model_hw_mc_genetic.attenuation.base import Base as AttenuationExperiment
 
@@ -181,3 +183,28 @@ def get_experiment(target: pd.DataFrame) -> AttenuationExperiment:
 
     raise RuntimeError(f'The experiment of type "{attrs["experiment"]}" is '
                        'not supported.')
+
+
+def extract_original_parameters(dfs: Sequence[pd.DataFrame]) -> np.ndarray:
+    '''
+    Extract the original parameters from the given DataFrames with samples.
+
+    Try to extract the parameters which were used to measure the target on
+    which the posteriors were conditioned.
+
+
+    :param dfs: DataFrames with samples drawn during the approximation or drawn
+        from the posteriors. From their attributes the initial target is
+        extracted and from the target the parameter.
+    :raises RuntimeError: If the original parameters can not be extracted.
+    '''
+    try:
+        target_dfs = [pd.read_pickle(df.attrs['target_file']) for df in dfs]
+    except (KeyError, FileNotFoundError) as err:
+        raise RuntimeError('Target can not be extracted for all '
+                           'posterior files.') from err
+    try:
+        return get_identical_attr(target_dfs, 'parameters')
+    except AttributeNotIdentical as err:
+        raise RuntimeError('Posterior files do not have a common target.'
+                           ) from err
