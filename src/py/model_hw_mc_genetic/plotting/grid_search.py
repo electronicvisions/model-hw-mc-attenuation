@@ -72,14 +72,14 @@ def plot_contour_lines(ax: plt.Axes, data: pd.DataFrame, *,
     return ax.contour(x_data, y_data, values, **default_kwargs)
 
 
-def create_obs_dataframe(data: pd.DataFrame, observation: str,
+def create_obs_dataframe(data: pd.DataFrame, observation: Observation,
                          target: Optional[np.ndarray] = None) -> pd.DataFrame:
     '''
-    Create DataFrame with the parameters and the givenobservation.
+    Create DataFrame with the parameters and the given observation.
 
     :param data: DataFrame with parameters and EPSP amplitudes.
     :param observation: Observable to extract from the data.
-    :param target: One-diemensional array with target amplitudes.
+    :param target: One-dimensional array with target amplitudes.
         Only needed if observable is 'deviation_amplitudes'.
     :returns: DataFrame with the original parameters and the extracted
         observable.

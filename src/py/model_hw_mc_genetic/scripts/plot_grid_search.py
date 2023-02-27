@@ -53,7 +53,7 @@ if __name__ == '__main__':
                              'measurement results.')
     parser.add_argument('-observable',
                         type=str,
-                        default='length_constant',
+                        default=Observation.LENGTH_CONSTANT.name.lower(),
                         choices=[obs.name.lower() for obs in possible_obs],
                         help='Observable to plot.')
     parser.add_argument('-target',
@@ -67,5 +67,7 @@ if __name__ == '__main__':
 
     fig, axis = plt.subplots()
     target_df = None if args.target is None else pd.read_pickle(args.target)
-    main(axis, pd.read_pickle(input_file), args.observable, target=target_df)
+    main(axis, pd.read_pickle(input_file),
+         Observation[args.observable.upper()],
+         target=target_df)
     fig.savefig(f'{input_file.stem}.png')
