@@ -2,6 +2,7 @@
 
 import argparse
 from typing import Optional, Tuple
+import quantities as pq
 import neo
 
 from model_hw_mc_genetic.attenuation.arbor import AttenuationExperiment
@@ -19,7 +20,8 @@ def main(length: int,
     '''
     experiment = AttenuationExperiment(length)
 
-    params = experiment.time_constants_to_conductance(parameters)
+    params = experiment.time_constants_to_conductance(
+        None if parameters is None else parameters * pq.ms)
 
     return experiment.record_data(params)
 
