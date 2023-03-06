@@ -35,11 +35,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Perform the ChainAttenuation experiment several times '
                     'and save the PSP heights in a pickled DataFrame.')
-    parser.add_argument("-mode",
-                        help="Perform the experiment on BSS-2 or in arbor.",
-                        type=str,
-                        default='bss',
-                        choices=['bss', 'arbor'])
     parser.add_argument("-length",
                         help="Length of compartment chain.",
                         type=int,
