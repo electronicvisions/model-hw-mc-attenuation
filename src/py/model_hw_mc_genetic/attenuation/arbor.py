@@ -428,4 +428,4 @@ class AttenuationExperiment(Base):
 
 
 # default limits for leak and inter-compartment time constants (in ms)
-default_tau_limits = np.array([[1, 20], [1, 20]])
+default_tau_limits = np.array([[12, 30], [3, 30]])
