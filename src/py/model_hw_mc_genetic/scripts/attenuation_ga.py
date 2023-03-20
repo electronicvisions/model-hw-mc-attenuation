@@ -139,8 +139,11 @@ def main(target_data: pd.DataFrame,
     toolbox.register("evaluate", get_evaluation_function(
         attenuation_exp, observation, target_obs,
         bounds=get_bounds(target_data)))
-    creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-    creator.create("Individual", list, fitness=creator.FitnessMin)  # pylint:disable=no-member
+
+    if not hasattr(creator, "FitnessMin"):
+        creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
+    if not hasattr(creator, "Individual"):
+        creator.create("Individual", list, fitness=creator.FitnessMin)  # pylint:disable=no-member
 
     def create_individual(container: Sequence) -> Sequence:
         rng = np.random.default_rng()
