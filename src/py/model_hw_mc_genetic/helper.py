@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple
 import numpy as np
 import pandas as pd
 from pyNN.common import BasePopulation
@@ -9,6 +9,21 @@ class AttributeNotIdentical(Exception):
     Exception used py :func:`get_identical_attr` if the requested attribute
     is not identical for all DataFrames.
     '''
+
+
+def conductance_to_capmem(value: int) -> Tuple[int, bool, bool]:
+    '''
+    Map the given conductance to a CapMem value and decide if
+    multiplication/division should be enabled.
+
+    :param value: Conductance between 0 and 3068. If the conductance is below
+        1023 the low conductance mode should be enabled. If it is higher than
+        2045, the high conductance mode should be enabled.
+    :returns: Tuple of (CapMem value, enable division, enable multiplication).
+    '''
+    multiplication = value > 2045
+    division = value < 1023
+    return int(value % 1023), division, multiplication
 
 
 def set_leak_conductance(pop: BasePopulation, value: int):
@@ -22,11 +37,10 @@ def set_leak_conductance(pop: BasePopulation, value: int):
         1023 the low conductance mode is enabled. If it is higher than 2045,
         the high conductance mode is enabled.
     '''
-    multiplication = value > 2045
-    division = value < 1023
+    norm_value, division, multiplication = conductance_to_capmem(value)
     pop.set(leak_enable_multiplication=multiplication,
             leak_enable_division=division,
-            leak_i_bias=value % 1023)
+            leak_i_bias=norm_value)
 
 
 def get_identical_attr(sample_dfs: List[pd.DataFrame], attribute: str) -> List:
