@@ -9,7 +9,7 @@ EXPERIMENT_NAME: str = "model_hw_mc_genetic"
 
 
 def depends(ctx):
-    ctx("model-hw-si-nsc-dendrites")
+    ctx("pynn-brainscales")
     ctx("code-format")
 
 
@@ -45,7 +45,7 @@ def build_host_python(bld):
         install_from="src/py",
         pylint_config=join(get_toplevel_path(), "code-format", "pylintrc"),
         pycodestyle_config=join(get_toplevel_path(), "code-format", "pycodestyle"),
-        use=["model_hw_si_nsc_dendrites-python_libraries"],
+        use=["pynn_brainscales2"],
         test_timeout=60)
 
     bld(name=f"{EXPERIMENT_NAME}-python_scripts",
@@ -57,12 +57,12 @@ def build_host_python(bld):
         chmod=Utils.O755,
         pylint_config=join(get_toplevel_path(), "code-format", "pylintrc"),
         pycodestyle_config=join(get_toplevel_path(), "code-format", "pycodestyle"),
-        use=[f"{EXPERIMENT_NAME}-python_libraries"])
+        use=["pynn_brainscales2", f"{EXPERIMENT_NAME}-python_libraries"])
 
     bld(name=f"{EXPERIMENT_NAME}-python_hwtests",
         tests=bld.path.ant_glob("tests/hw/py/**/*.py"),
         features="use pytest pylint pycodestyle",
-        use=f"{EXPERIMENT_NAME}-python_libraries",
+        use=["pynn_brainscales2", f"{EXPERIMENT_NAME}-python_libraries"],
         install_path="${PREFIX}/bin/tests/hw",
         pylint_config=join(get_toplevel_path(), "code-format", "pylintrc"),
         pycodestyle_config=join(get_toplevel_path(), "code-format", "pycodestyle"),
@@ -72,7 +72,7 @@ def build_host_python(bld):
     bld(name=f"{EXPERIMENT_NAME}-python_swtests",
         tests=bld.path.ant_glob("tests/sw/py/**/*.py"),
         features="use pytest pylint pycodestyle",
-        use=f"{EXPERIMENT_NAME}-python_libraries",
+        use=["pynn_brainscales2", f"{EXPERIMENT_NAME}-python_libraries"],
         install_path="${PREFIX}/bin/tests/sw",
         pylint_config=join(get_toplevel_path(), "code-format", "pylintrc"),
         pycodestyle_config=join(get_toplevel_path(), "code-format", "pycodestyle"),

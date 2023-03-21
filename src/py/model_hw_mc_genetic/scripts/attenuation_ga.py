@@ -11,7 +11,7 @@ import pandas as pd
 
 from deap import base, creator
 
-from model_hw_si_nsc_dendrites.helper import get_license_and_chip
+from model_hw_mc_genetic.helper import get_license_and_chip
 
 from model_hw_mc_genetic.genetic import tools
 from model_hw_mc_genetic.attenuation import Observation, fit_length_constant

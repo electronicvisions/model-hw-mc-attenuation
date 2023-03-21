@@ -10,9 +10,9 @@ import quantities as pq
 import pynn_brainscales.brainscales2 as pynn
 from pynn_brainscales.brainscales2.standardmodels.synapses import StaticSynapse
 
-from model_hw_si_nsc_dendrites.compartment_chain import CompartmentChain
-from model_hw_si_nsc_dendrites.helper import get_license_and_chip, \
-    set_compartment_conductance
+from model_hw_mc_genetic.compartment_chain import CompartmentChain
+from model_hw_mc_genetic.helper import get_license_and_chip, \
+    set_axial_conductance
 
 from model_hw_mc_genetic.helper import set_leak_conductance
 from model_hw_mc_genetic.attenuation import extract_psp_heights
@@ -97,7 +97,7 @@ class AttenuationExperiment(Base):
         for comp, g_leak in zip(self.chain.compartments, params[:length]):
             set_leak_conductance(comp, g_leak)
         for comp, g_icc in zip(self.chain.compartments[1:], params[length:]):
-            set_compartment_conductance(comp, g_icc)
+            set_axial_conductance(comp, g_icc)
 
     def set_parameters_global(self, params: np.ndarray):
         if params.size != 2:
@@ -107,7 +107,7 @@ class AttenuationExperiment(Base):
         for comp in self.chain.compartments:
             set_leak_conductance(comp, params[0])
         for comp in self.chain.compartments[1:]:
-            set_compartment_conductance(comp, params[1])
+            set_axial_conductance(comp, params[1])
 
     def _record_raw_traces(self) -> List[neo.IrregularlySampledSignal]:
         '''

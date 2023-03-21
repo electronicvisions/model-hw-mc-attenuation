@@ -6,7 +6,7 @@ from typing import Optional, Tuple
 import pandas as pd
 
 from pynn_brainscales.brainscales2.helper import nightly_calib_path
-from model_hw_si_nsc_dendrites.helper import get_license_and_chip
+from model_hw_mc_genetic.helper import get_license_and_chip
 
 from model_hw_mc_genetic.attenuation.bss import AttenuationExperiment, \
     add_bss_psp_args

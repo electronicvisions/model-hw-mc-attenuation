@@ -1,6 +1,8 @@
 from typing import List, Optional, Tuple
+import os
 import numpy as np
 import pandas as pd
+import yaml
 from pyNN.common import BasePopulation
 
 
@@ -41,6 +43,27 @@ def set_leak_conductance(pop: BasePopulation, value: int):
     pop.set(leak_enable_multiplication=multiplication,
             leak_enable_division=division,
             leak_i_bias=norm_value)
+
+
+def set_axial_conductance(pop: BasePopulation, value: int):
+    '''
+    Enables and sets the inter-compartment conductance of populations of
+    HXNeurons.
+
+    Depending on the supplied conductance the division/multiplication mode is
+    enabled.
+
+    :param pop: Population of HXNeurons for which the conductance should be set
+    :param value: Conductance between 0 and 3068. If the conductance is below
+        1023 the low conductance mode is enabled. If it is higher than 2045,
+        the high conductance mode is enabled.
+    '''
+    norm_value, division, multiplication = conductance_to_capmem(value)
+    pop.set(multicompartment_connect_soma=False,
+            multicompartment_enable_conductance=True,
+            multicompartment_enable_conductance_multiplication=multiplication,
+            multicompartment_enable_conductance_division=division,
+            multicompartment_i_bias_nmda=norm_value)
 
 
 def get_identical_attr(sample_dfs: List[pd.DataFrame], attribute: str) -> List:
@@ -136,3 +159,37 @@ def get_parameter_limits(dfs: List[pd.DataFrame],
 
     n_param = np.where(dfs[0].columns == parameter_name)[0][0]
     return limits[n_param]
+
+
+def get_chip_serial() -> Optional[int]:
+    '''
+    Extract chip serial from environment.
+
+    Parse the handwritten chip serial from the environment variable
+    `SLURM_HWDB_YAML`.
+
+    :return: Handwritten chip serial if information is available in environment
+        else nothing is returned.
+    '''
+    if 'SLURM_HARDWARE_LICENSES' not in os.environ or 'SLURM_HWDB_YAML' \
+            not in os.environ:
+        return None
+    fpga = int(os.environ.get('SLURM_HARDWARE_LICENSES')[-1])
+    hwdb = yaml.safe_load(os.environ.get('SLURM_HWDB_YAML'))['fpgas']
+    for fpga_data in hwdb:
+        if fpga_data['fpga'] == fpga:
+            return fpga_data['handwritten_chip_serial']
+    return None
+
+
+def get_license_and_chip() -> str:
+    '''
+    Create a string which uniquely describes a BSS-2 chip and the used FPGA.
+
+    :return: String 'W{wafer}F{fpga}C{chip_serial}' if the information is
+        available in the environment, else an empty string.
+    '''
+    if 'SLURM_HARDWARE_LICENSES' not in os.environ or 'SLURM_HWDB_YAML' \
+            not in os.environ:
+        return ''
+    return f"{os.environ.get('SLURM_HARDWARE_LICENSES')}C{get_chip_serial()}"
