@@ -5,9 +5,9 @@ attenuation in a DataFrame.
 '''
 import quantities as pq
 
-from model_hw_mc_genetic.attenuation.helper import grid_search
+from model_hw_mc_attenuation.helper import grid_search
 
-from model_hw_mc_genetic.attenuation.arbor import AttenuationExperiment, \
+from model_hw_mc_attenuation.arbor import AttenuationExperiment, \
     default_tau_limits
 
 

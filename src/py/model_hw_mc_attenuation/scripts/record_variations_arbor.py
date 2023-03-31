@@ -4,8 +4,8 @@ from typing import Optional, Tuple
 
 import pandas as pd
 
-from model_hw_mc_genetic.attenuation.arbor import AttenuationExperiment
-from model_hw_mc_genetic.attenuation.helper import record_variations
+from model_hw_mc_attenuation.arbor import AttenuationExperiment
+from model_hw_mc_attenuation.helper import record_variations
 
 
 def main(length: int, repetitions: int,

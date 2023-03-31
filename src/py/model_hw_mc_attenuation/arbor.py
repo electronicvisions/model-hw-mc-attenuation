@@ -9,8 +9,8 @@ import numpy as np
 import quantities as pq
 import torch
 
-from model_hw_mc_genetic.attenuation import extract_psp_heights
-from model_hw_mc_genetic.attenuation.base import Base
+from model_hw_mc_attenuation import extract_psp_heights
+from model_hw_mc_attenuation import AttenuationExperiment as Base
 
 
 class ChainRecipe(arbor.recipe):

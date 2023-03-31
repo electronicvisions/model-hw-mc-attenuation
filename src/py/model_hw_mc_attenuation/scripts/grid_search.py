@@ -7,10 +7,9 @@ from pathlib import Path
 
 from pynn_brainscales.brainscales2.helper import nightly_calib_path
 
-from model_hw_mc_genetic.helper import get_license_and_chip
+from model_hw_mc_attenuation.helper import get_license_and_chip, grid_search
 
-from model_hw_mc_genetic.attenuation.helper import grid_search
-from model_hw_mc_genetic.attenuation.bss import AttenuationExperiment, \
+from model_hw_mc_attenuation.bss import AttenuationExperiment, \
     default_conductance_limits, add_bss_psp_args
 
 

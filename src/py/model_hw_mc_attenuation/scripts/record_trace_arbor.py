@@ -5,7 +5,7 @@ from typing import Optional, Tuple
 import quantities as pq
 import neo
 
-from model_hw_mc_genetic.attenuation.arbor import AttenuationExperiment
+from model_hw_mc_attenuation.arbor import AttenuationExperiment
 
 
 def main(length: int,

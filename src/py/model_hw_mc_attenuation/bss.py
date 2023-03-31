@@ -10,13 +10,11 @@ import quantities as pq
 import pynn_brainscales.brainscales2 as pynn
 from pynn_brainscales.brainscales2.standardmodels.synapses import StaticSynapse
 
-from model_hw_mc_genetic.compartment_chain import CompartmentChain
-from model_hw_mc_genetic.helper import get_license_and_chip, \
-    set_axial_conductance
-
-from model_hw_mc_genetic.helper import set_leak_conductance
-from model_hw_mc_genetic.attenuation import extract_psp_heights
-from model_hw_mc_genetic.attenuation.base import Base
+from model_hw_mc_attenuation.compartment_chain import CompartmentChain
+from model_hw_mc_attenuation.helper import get_license_and_chip, \
+    set_axial_conductance, set_leak_conductance
+from model_hw_mc_attenuation import extract_psp_heights
+from model_hw_mc_attenuation import AttenuationExperiment as Base
 
 
 class AttenuationExperiment(Base):

@@ -6,8 +6,8 @@ import numpy as np
 import pandas as pd
 
 import scipy.ndimage
-from model_hw_mc_genetic.attenuation import Observation
-from model_hw_mc_genetic.attenuation.helper import extract_observation
+from model_hw_mc_attenuation import Observation
+from model_hw_mc_attenuation.extract import extract_observation
 
 
 def plot_heat_map(ax: plt.Axes, data: pd.DataFrame

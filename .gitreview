@@ -1,7 +1,7 @@
 [gerrit]
 host=gerrit.bioai.eu
 port=29418
-project=model-hw-mc-genetic
+project=model-hw-mc-attenuation
 defaultbranch=master
 defaultremote=review
 defaultrebase=0

@@ -2,7 +2,7 @@ from typing import Optional
 import numpy as np
 
 import pynn_brainscales.brainscales2 as pynn
-from model_hw_mc_genetic.helper import set_axial_conductance
+from model_hw_mc_attenuation.helper import set_axial_conductance
 
 
 class CompartmentChain:

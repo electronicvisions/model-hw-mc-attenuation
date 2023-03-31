@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from model_hw_mc_genetic.attenuation import Observation
-from model_hw_mc_genetic.plotting.grid_search import create_obs_dataframe, \
-    plot_heat_map, plot_contour_lines
+from model_hw_mc_attenuation import Observation
+from model_hw_mc_attenuation.plotting.grid_search import \
+    create_obs_dataframe, plot_heat_map, plot_contour_lines
 
 
 def main(ax: plt.Axes, data: pd.DataFrame, observation: Observation,

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 import unittest
 
-from model_hw_mc_genetic.scripts.attenuation_record_variations import main
-from model_hw_mc_genetic.scripts.attenuation_record_variations_arbor import \
+from model_hw_mc_attenuation.scripts.record_variations import main
+from model_hw_mc_attenuation.scripts.record_variations_arbor import \
     main as main_arbor
 
 

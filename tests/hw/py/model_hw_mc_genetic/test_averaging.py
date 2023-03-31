@@ -4,8 +4,8 @@ import numpy as np
 
 import pynn_brainscales.brainscales2 as pynn
 
-from model_hw_mc_genetic.attenuation import extract_psp_heights
-from model_hw_mc_genetic.attenuation.bss import AttenuationExperiment
+from model_hw_mc_attenuation import extract_psp_heights
+from model_hw_mc_attenuation.bss import AttenuationExperiment
 
 
 class TestAveraging(unittest.TestCase):

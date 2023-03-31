@@ -9,14 +9,13 @@ import quantities as pq
 
 import pynn_brainscales.brainscales2 as pynn
 
-from model_hw_mc_genetic.attenuation.bss import AttenuationExperiment as \
+from model_hw_mc_attenuation import Observation
+from model_hw_mc_attenuation.bss import AttenuationExperiment as \
     AttenuationBSS
-from model_hw_mc_genetic.attenuation.arbor import \
+from model_hw_mc_attenuation.arbor import \
     AttenuationExperiment as AttenuationArbor
-
-from model_hw_mc_genetic.attenuation.helper import Observation
-from model_hw_mc_genetic.attenuation.helper import grid_search
-from model_hw_mc_genetic.scripts.plot_grid_search import main as \
+from model_hw_mc_attenuation.helper import grid_search
+from model_hw_mc_attenuation.scripts.plot_grid_search import main as \
     plot_grid_search
 
 

@@ -1,9 +1,14 @@
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Sequence
 import os
+from itertools import product
+from datetime import datetime
+
 import numpy as np
 import pandas as pd
 import yaml
 from pyNN.common import BasePopulation
+
+from model_hw_mc_attenuation import AttenuationExperiment
 
 
 class AttributeNotIdentical(Exception):
@@ -130,3 +135,95 @@ def get_license_and_chip() -> str:
             not in os.environ:
         return ''
     return f"{os.environ.get('SLURM_HARDWARE_LICENSES')}C{get_chip_serial()}"
+
+
+def grid_search(chain_experiment: AttenuationExperiment,
+                g_leak: Tuple[float, float, float],
+                g_icc: Tuple[float, float, float],
+                ) -> pd.DataFrame:
+    '''
+    Perform a grid search of the axial and inter-compartment conductance for
+    an AttenuationExperiment on BSS-2.
+
+    :param chain_experiment: Attenuation Experiment.
+    :param g_leak: Tuple (min, max, steps) used for the leak conductance
+        during the grid search. The number of steps is converted to an integer.
+    :param g_leak: Tuple (min, max, steps) used for the inter-compartment
+        conductance during the grid search. The number of steps is converted to
+        an integer.
+    :returns: DataFrame filled with tested parameters and measured amplitudes.
+    '''
+    # Determine measurement points
+    g_leak_icc = np.array(list(product(
+        np.linspace(g_leak[0], g_leak[1], int(g_leak[-1])),
+        np.linspace(g_icc[0], g_icc[1], int(g_icc[-1])))))
+
+    # Create DataFrame, fill with parameter values and add meta data
+    length = chain_experiment.length
+    param_col = pd.MultiIndex.from_product([['parameters'],
+                                            ['g_leak', 'g_icc']])
+    cols = [f"A_{i}{j}" for i, j in product(range(length), range(length))]
+    amp_col = pd.MultiIndex.from_product([['amplitudes'], cols])
+    columns = pd.MultiIndex.from_tuples(list(param_col) + list(amp_col))
+
+    result = pd.DataFrame(np.zeros([len(g_leak_icc), 2 + length**2]),
+                          columns=columns)
+    result['parameters'] = g_leak_icc
+
+    result.attrs['length'] = length
+    result.attrs['date'] = str(datetime.now())
+
+    # Perform experiment
+    for row in range(len(result)):
+        g_leak, g_icc = result.loc[row, 'parameters']
+        res = chain_experiment.measure_response(np.array([g_leak, g_icc]))
+        result.loc[row, 'amplitudes'] = res.flatten()
+
+    return result
+
+
+def record_variations(experiment: AttenuationExperiment,
+                      repetitions: int) -> pd.DataFrame:
+    '''
+    Repeat the same attenuation experiment several times and log the recorded
+    PSP amplitudes in a DataFrame.
+
+    :param experiment: Attenuation Experiment.
+    :param repetitions: Number of times the experiment should be repeated.
+    :returns: DataFrame with PSP amplitudes for each repetition.
+    '''
+
+    results = []
+    for _ in range(repetitions):
+        result = experiment.measure_response()
+        results.append(result.flatten())
+
+    result = pd.DataFrame(np.array(results))
+    result.attrs['length'] = experiment.length
+    result.attrs['date'] = str(datetime.now())
+
+    return result
+
+
+def extract_original_parameters(dfs: Sequence[pd.DataFrame]) -> np.ndarray:
+    '''
+    Extract the original parameters from the given DataFrames with samples.
+
+    Try to extract the parameters which were used to measure the target on
+    which the posteriors were conditioned.
+
+    :param dfs: DataFrames with samples drawn during the approximation or drawn
+        from the posteriors. From their attributes the initial target is
+        extracted and from the target the parameter.
+    :raises RuntimeError: If the original parameters can not be extracted.
+    '''
+    try:
+        target_dfs = [pd.read_pickle(df.attrs['target_file']) for df in dfs]
+    except (KeyError, FileNotFoundError) as err:
+        raise RuntimeError('Target can not be extracted for all '
+                           'posterior files.') from err
+    try:
+        return get_identical_attr(target_dfs, 'parameters')
+    except AttributeNotIdentical as err:
+        raise RuntimeError('Posterior files do not have a common target.'
+                           ) from err

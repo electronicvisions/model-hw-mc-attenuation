@@ -6,9 +6,9 @@ from unittest import mock
 
 import pynn_brainscales.brainscales2 as pynn
 
-from model_hw_mc_genetic.attenuation.bss import AttenuationExperiment as \
+from model_hw_mc_attenuation.bss import AttenuationExperiment as \
     AttenuationBSS
-from model_hw_mc_genetic.attenuation.arbor import AttenuationExperiment as \
+from model_hw_mc_attenuation.arbor import AttenuationExperiment as \
     AttenuationArbor
 
 

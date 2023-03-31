@@ -5,7 +5,7 @@ from waflib.extras.symwaf2ic import get_toplevel_path
 from waflib import Utils
 
 
-EXPERIMENT_NAME: str = "model_hw_mc_genetic"
+EXPERIMENT_NAME: str = "model_hw_mc_attenuation"
 
 
 def depends(ctx):

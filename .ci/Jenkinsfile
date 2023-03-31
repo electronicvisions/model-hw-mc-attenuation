@@ -1,7 +1,7 @@
 @Library("jenlib") _
 
 Map<String, Object> pipelineOptions = [
-		projects: ["model-hw-mc-genetic"],
+		projects: ["model-hw-mc-attenuation"],
 		container: [app: "dls"],
 		notificationChannel: "#jjk-notifications",
 		configureInstallOptions: "--build-profile=ci",
@@ -18,7 +18,7 @@ withCcache() {
 // Archive plots from tests
 stage(name: "Archive Test Plots") {
 	runOnSlave(label: "frontend") {
-		archiveArtifacts(artifacts: 'model-hw-mc-genetic/test_results/*',
+		archiveArtifacts(artifacts: 'model-hw-mc-attenuation/test_results/*',
 		                 allowEmptyArchive: true)
 	}
 }

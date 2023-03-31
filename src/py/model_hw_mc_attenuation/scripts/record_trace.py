@@ -8,7 +8,7 @@ import neo
 
 from pynn_brainscales.brainscales2.helper import nightly_calib_path
 
-from model_hw_mc_genetic.attenuation.bss import AttenuationExperiment, \
+from model_hw_mc_attenuation.bss import AttenuationExperiment, \
     add_bss_psp_args
 
 
