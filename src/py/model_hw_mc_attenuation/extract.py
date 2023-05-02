@@ -33,11 +33,13 @@ def get_experiment(target: pd.DataFrame) -> AttenuationExperiment:
     if attrs['experiment'] == 'attenuation_bss':
         from model_hw_mc_attenuation.bss import AttenuationExperiment \
             as AttenuationBSS
+        # n_average was added later -> some saved experiments do not have
+        # the n_average attribute -> set equal to 1
         return AttenuationBSS(Path(attrs['calibration']),
                               length=attrs['length'],
                               input_neurons=attrs['input_neurons'],
                               input_weight=attrs['input_weight'],
-                              n_average=attrs['n_average'])
+                              n_average=attrs.get('n_average', 1))
 
     if attrs['experiment'] == 'attenuation_arbor':
         from model_hw_mc_attenuation.arbor import \
