@@ -120,7 +120,7 @@ class AttenuationExperiment(Base):
 
             pynn.run(float(self.runtime.rescale(pq.ms)))
 
-            # Extract hight
+            # Extract height
             segments = comp.get_data(clear=True).segments
             sig = segments[-1].irregularlysampledsignals[0]
             sig.annotate(compartment=n_comp, input_spikes=self.spike_times,
