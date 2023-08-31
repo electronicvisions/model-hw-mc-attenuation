@@ -242,16 +242,31 @@ class AttenuationExperiment(ABC):
             globally. Do return the global parameter names.
         :returns: Names for all parameters of the experiment.
         '''
-        parameter_base_names = ['g_leak', 'g_icc']
+        return parameter_names(None if global_names else self.length)
 
-        # Global evaluation
-        if global_names:
-            return parameter_base_names
 
-        parameters = [f'{parameter_base_names[0]}_{comp}' for comp in
-                      range(self.length)]
-        parameters.extend(
-            [f'{parameter_base_names[1]}_{comp}_{comp + 1}' for comp in
-             range(self.length - 1)])
+def parameter_names(length: Optional[int] = None) -> List[str]:
+    '''
+    Get the names of the parameters which can be configured for an attenuation
+    experiment.
 
-        return parameters
+    The parameters are the leak and inter-compartment conductance. The
+    number of parameters depends on the length of the chain.
+
+    :param length: Length of the chain. If not set the global parameter names
+        (leak and inter-compartment conductance) are returned.
+    :returns: Names for all parameters of the experiment.
+    '''
+    parameter_base_names = ['g_leak', 'g_icc']
+
+    # Global evaluation
+    if length is None:
+        return parameter_base_names
+
+    parameters = [f'{parameter_base_names[0]}_{comp}' for comp in
+                  range(length)]
+    parameters.extend(
+        [f'{parameter_base_names[1]}_{comp}_{comp + 1}' for comp in
+         range(length - 1)])
+
+    return parameters
