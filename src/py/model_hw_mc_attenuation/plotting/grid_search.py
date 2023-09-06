@@ -10,10 +10,12 @@ from model_hw_mc_attenuation import Observation
 from model_hw_mc_attenuation.extract import extract_observation
 
 
-def plot_heat_map(ax: plt.Axes, data: pd.DataFrame
+def plot_heat_map(ax: plt.Axes, data: pd.DataFrame, **kwargs
                   ) -> matplotlib.collections.QuadMesh:
     '''
     Plot a heat map in the given axis.
+
+    Keyword arguments are passed to pcolormesh
 
     :param ax: Axis in which to plot the heat map.
     :param data: Data for which to plot the heat map. The x values are assumed
@@ -34,8 +36,10 @@ def plot_heat_map(ax: plt.Axes, data: pd.DataFrame
     ax.set_xlabel(x_name)
     ax.set_ylabel(y_name)
 
-    return ax.pcolormesh(x_data, y_data, data.values, cmap='cividis',
-                         edgecolor='face', shading='nearest')
+    args = {'cmap': 'cividis', 'edgecolor': 'face', 'shading': 'nearest'}
+    args.update(kwargs)
+
+    return ax.pcolormesh(x_data, y_data, data.values, **args)
 
 
 def plot_contour_lines(ax: plt.Axes, data: pd.DataFrame, *,
