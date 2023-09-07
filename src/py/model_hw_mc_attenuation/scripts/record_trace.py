@@ -47,11 +47,6 @@ if __name__ == '__main__':
         description='Perform the ChainAttenuation experiment and record '
                     'the membrane potentials. The recorded membrane traces '
                     'are saved in a pickled `neo.Block`.')
-    parser.add_argument("-mode",
-                        help="Perform the experiment on BSS-2 or in arbor.",
-                        type=str,
-                        default='bss',
-                        choices=['bss', 'arbor'])
     parser.add_argument("-length",
                         help="Length of compartment chain.",
                         type=int,
