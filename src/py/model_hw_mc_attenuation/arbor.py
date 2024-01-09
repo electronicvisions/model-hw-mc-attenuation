@@ -251,7 +251,6 @@ class ChainRecipe(arbor.recipe):
             f'"center_comp_{n_comp}"') for n_comp in range(self.length)]
         return probes
 
-    # pylint: disable=no-self-use
     def global_properties(self, kind: arbor.cell_kind
                           ) -> arbor.cable_global_properties:
         '''
