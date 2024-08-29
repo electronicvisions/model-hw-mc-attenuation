@@ -89,7 +89,7 @@ def extract_observation(amplitudes: pd.DataFrame,
 
     :param amplitudes: DataFrame with PSP amplitudes.
     :param observation: Type of observation to extract.
-    :param atrget_amplitudes: One-dimensional array with atrget amplitudes.
+    :param target_amplitudes: One-dimensional array with target amplitudes.
     :returns: The given observation for each row in the DataFrame.
     '''
     if observation == Observation.AMPLITUDES:
